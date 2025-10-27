@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Proyectos con QR</title>
     <style>
+        /* Mantenemos los mismos estilos del código anterior */
         :root {
             --primary: #4361ee;
             --primary-dark: #3a56d4;
@@ -730,15 +731,26 @@
                 
                 // Hacer una solicitud de prueba usando GET
                 const response = await fetch(testURL);
+                const responseText = await response.text();
                 
-                if (response.ok) {
-                    const result = await response.json();
+                addDebugInfo('Respuesta cruda: ' + responseText);
+                
+                let result;
+                try {
+                    // Intentar parsear como JSON
+                    result = JSON.parse(responseText);
+                } catch (parseError) {
+                    // Si falla el parseo, mostrar el error específico
+                    throw new Error(`El servidor no devolvió JSON válido. Respuesta: "${responseText}"`);
+                }
+                
+                if (response.ok && result.status === 'success') {
                     showStatus('✅ Conexión exitosa con Google Apps Script', 'success');
                     addDebugInfo('Conexión exitosa: ' + JSON.stringify(result));
                     scriptURL = testURL;
                     localStorage.setItem('googleScriptURL', scriptURL);
                 } else {
-                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                    throw new Error(result.message || `Error ${response.status}: ${response.statusText}`);
                 }
                 
             } catch (error) {
@@ -926,24 +938,32 @@
                 
                 addDebugInfo(`Enviando datos: usuario=${user}, proyecto=${project}, código=${scannedData}`);
                 
-                // Usar URLSearchParams
-                const formData = new URLSearchParams();
-                formData.append('user', user);
-                formData.append('project', project);
-                formData.append('code', scannedData);
-                formData.append('timestamp', timestamp);
+                // Enviar datos como JSON en lugar de form-urlencoded
+                const payload = {
+                    user: user,
+                    project: project,
+                    code: scannedData,
+                    timestamp: timestamp
+                };
                 
-                // Enviar datos a Google Sheets
+                // Enviar datos a Google Sheets como JSON
                 const response = await fetch(scriptURL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Content-Type': 'application/json',
                     },
-                    body: formData
+                    body: JSON.stringify(payload)
                 });
                 
-                const result = await response.json();
-                addDebugInfo('Respuesta del servidor: ' + JSON.stringify(result));
+                const responseText = await response.text();
+                addDebugInfo('Respuesta cruda del servidor: ' + responseText);
+                
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (parseError) {
+                    throw new Error(`El servidor no devolvió JSON válido. Respuesta: "${responseText}"`);
+                }
                 
                 if (result.status === 'success') {
                     // Agregar al historial local
@@ -1029,17 +1049,6 @@
                     setTimeout(startScanner, 500);
                 });
             }
-        });
-        
-        // Manejar cambios de orientación en móviles
-        window.addEventListener('orientationchange', function() {
-            setTimeout(() => {
-                if (qrScanner && qrScanner.isScanning) {
-                    stopScanner().then(() => {
-                        setTimeout(startScanner, 1000);
-                    });
-                }
-            }, 300);
         });
     </script>
 </body>
