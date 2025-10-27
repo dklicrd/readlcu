@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Proyectos con QR</title>
-    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
     <style>
         :root {
             --primary: #4361ee;
@@ -116,6 +115,10 @@
             background: #000;
             position: relative;
             height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
         }
         
         #reader {
@@ -199,6 +202,12 @@
             border: 1px solid #fecaca;
         }
         
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
         .info {
             background: #dbeafe;
             color: #1e40af;
@@ -257,6 +266,14 @@
             border-bottom: none;
         }
         
+        .manual-input {
+            margin-top: 15px;
+        }
+        
+        .manual-input input {
+            margin-bottom: 10px;
+        }
+        
         @media (max-width: 768px) {
             .form-grid {
                 grid-template-columns: 1fr;
@@ -283,7 +300,7 @@
         <div class="main-content">
             <section class="form-section">
                 <h2 class="section-title">
-                    <i class="fas fa-user"></i> Información del Registro
+                    <span>👤</span> Información del Registro
                 </h2>
                 
                 <div class="form-grid">
@@ -326,11 +343,17 @@
                         <span id="scanned-code">Ninguno</span>
                     </div>
                 </div>
+                
+                <div class="manual-input">
+                    <label for="manual-code">O ingresa el código manualmente:</label>
+                    <input type="text" id="manual-code" placeholder="Escribe el código aquí">
+                    <button id="use-manual-code" class="btn-primary">Usar código manual</button>
+                </div>
             </section>
             
             <section class="scanner-section">
                 <h2 class="section-title">
-                    <i class="fas fa-camera"></i> Escáner de Códigos
+                    <span>📷</span> Escáner de Códigos
                 </h2>
                 
                 <div class="camera-selector">
@@ -339,19 +362,20 @@
                     </select>
                 </div>
                 
-                <div class="scanner-container">
+                <div class="scanner-container" id="scanner-container">
+                    <div id="scanner-status">Cargando escáner...</div>
                     <div id="reader"></div>
                 </div>
                 
                 <div class="controls">
                     <button id="start-btn" class="btn-primary">
-                        <i class="fas fa-play"></i> Iniciar Escáner
+                        <span>▶️</span> Iniciar Escáner
                     </button>
                     <button id="stop-btn" class="btn-danger" disabled>
-                        <i class="fas fa-stop"></i> Detener Escáner
+                        <span>⏹️</span> Detener Escáner
                     </button>
                     <button id="save-btn" class="btn-success" disabled>
-                        <i class="fas fa-save"></i> Guardar Registro
+                        <span>💾</span> Guardar Registro
                     </button>
                 </div>
                 
@@ -366,7 +390,7 @@
             
             <section class="history-section">
                 <h2 class="section-title">
-                    <i class="fas fa-history"></i> Registros Recientes
+                    <span>📋</span> Registros Recientes
                 </h2>
                 <div id="history"></div>
             </section>
@@ -376,6 +400,55 @@
             <p>Aplicación de Registro de Proyectos | &copy; 2023</p>
         </footer>
     </div>
+
+    <!-- Intentamos cargar la librería de múltiples fuentes -->
+    <script>
+        // Función para cargar la librería QR de forma robusta
+        function loadQRLibrary() {
+            return new Promise((resolve, reject) => {
+                // Verificar si ya está cargada
+                if (typeof Html5Qrcode !== 'undefined') {
+                    resolve();
+                    return;
+                }
+                
+                // Intentar cargar desde diferentes CDNs
+                const sources = [
+                    'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/minified/html5-qrcode.min.js',
+                    'https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js',
+                    'https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js'
+                ];
+                
+                let currentSource = 0;
+                
+                function tryLoad() {
+                    if (currentSource >= sources.length) {
+                        reject(new Error('No se pudo cargar la librería QR desde ninguna fuente'));
+                        return;
+                    }
+                    
+                    const script = document.createElement('script');
+                    script.src = sources[currentSource];
+                    script.onload = () => {
+                        if (typeof Html5Qrcode !== 'undefined') {
+                            resolve();
+                        } else {
+                            currentSource++;
+                            tryLoad();
+                        }
+                    };
+                    script.onerror = () => {
+                        currentSource++;
+                        tryLoad();
+                    };
+                    
+                    document.head.appendChild(script);
+                }
+                
+                tryLoad();
+            });
+        }
+    </script>
 
     <script>
         // Elementos DOM
@@ -391,6 +464,9 @@
         const statusDiv = document.getElementById('status');
         const historyDiv = document.getElementById('history');
         const cameraSelect = document.getElementById('camera-select');
+        const manualCodeInput = document.getElementById('manual-code');
+        const useManualCodeBtn = document.getElementById('use-manual-code');
+        const scannerStatus = document.getElementById('scanner-status');
         
         // Variables globales
         let html5QrCode = null;
@@ -405,8 +481,20 @@
         
         async function initializeApp() {
             try {
+                showStatus('Cargando librería QR...', 'info');
+                
+                // Cargar la librería QR
+                await loadQRLibrary();
+                
+                showStatus('Librería QR cargada correctamente', 'success');
+                
                 // Inicializar el escáner QR
-                html5QrCode = new Html5Qrcode("reader");
+                if (typeof Html5Qrcode !== 'undefined') {
+                    html5QrCode = new Html5Qrcode("reader");
+                    scannerStatus.textContent = 'Escáner listo';
+                } else {
+                    throw new Error('La librería QR no se cargó correctamente');
+                }
                 
                 // Cargar cámaras disponibles
                 await loadCameras();
@@ -417,12 +505,34 @@
                 saveBtn.addEventListener('click', saveToSheets);
                 userSelect.addEventListener('change', updateDataPreview);
                 projectSelect.addEventListener('change', updateDataPreview);
+                useManualCodeBtn.addEventListener('click', useManualCode);
                 
                 updateHistoryDisplay();
                 updateDataPreview();
                 
             } catch (error) {
+                console.error('Error al inicializar:', error);
                 showStatus('Error al inicializar: ' + error.message, 'error');
+                scannerStatus.textContent = 'Error al cargar el escáner. Usa la entrada manual.';
+                startBtn.disabled = true;
+            }
+        }
+        
+        function useManualCode() {
+            const manualCode = manualCodeInput.value.trim();
+            if (manualCode) {
+                scannedData = manualCode;
+                updateDataPreview();
+                resultDiv.innerHTML = `
+                    <strong>✅ Código ingresado manualmente:</strong>
+                    <div style="margin-top: 10px; padding: 10px; background: white; border-radius: 5px; word-break: break-all;">
+                        ${manualCode}
+                    </div>
+                `;
+                showStatus('Código manual ingresado correctamente', 'success');
+                manualCodeInput.value = '';
+            } else {
+                showStatus('Por favor, ingresa un código manualmente', 'error');
             }
         }
         
@@ -533,6 +643,7 @@
                 startBtn.disabled = true;
                 stopBtn.disabled = false;
                 cameraSelect.disabled = true;
+                scannerStatus.textContent = 'Escáner activo';
                 showStatus('Escáner activo - Apunta al código QR o de barras', 'success');
                 
             } catch (error) {
@@ -552,6 +663,7 @@
                 startBtn.disabled = false;
                 stopBtn.disabled = true;
                 cameraSelect.disabled = false;
+                scannerStatus.textContent = 'Escáner listo';
                 showStatus('Escáner detenido', 'info');
                 
             } catch (error) {
@@ -704,8 +816,5 @@
             }, 300);
         });
     </script>
-    
-    <!-- Font Awesome para iconos -->
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </body>
 </html>
