@@ -87,17 +87,23 @@
             border: none;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s;
             margin-top: 10px;
         }
         
         button:hover {
             background: #3a56d4;
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
         }
         
         button:disabled {
             background: #ccc;
             cursor: not-allowed;
+            transform: none;
         }
         
         .btn-success {
@@ -184,10 +190,22 @@
             padding: 15px;
             border-radius: 8px;
             margin-top: 15px;
-            font-family: monospace;
+            font-family: 'Courier New', monospace;
             font-size: 0.8rem;
-            max-height: 150px;
+            max-height: 200px;
             overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .connection-test {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .connection-test button {
+            margin-top: 0;
+            flex: 1;
         }
         
         footer {
@@ -197,6 +215,28 @@
             color: #666;
             font-size: 0.8rem;
             border-top: 1px solid #dee2e6;
+        }
+        
+        .troubleshooting {
+            background: #fff3cd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .troubleshooting h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .troubleshooting ul {
+            margin-left: 20px;
+            color: #856404;
+        }
+        
+        .troubleshooting li {
+            margin-bottom: 5px;
         }
     </style>
 </head>
@@ -214,12 +254,25 @@
                 <div class="form-group">
                     <label for="script-url">URL de Google Apps Script:</label>
                     <input type="text" id="script-url" placeholder="https://script.google.com/macros/s/.../exec">
-                    <button id="test-script-url" class="btn-primary">Probar Conexión</button>
-                    <button id="save-script-url" class="btn-success">Guardar URL</button>
+                    <div class="connection-test">
+                        <button id="test-script-url" class="btn-primary">Probar Conexión</button>
+                        <button id="save-script-url" class="btn-success">Guardar URL</button>
+                    </div>
                 </div>
                 <div class="debug-info" id="debug-info">
-                    Estado: Esperando configuración...
+Estado: Esperando configuración...
                 </div>
+            </div>
+
+            <!-- Solución de problemas -->
+            <div class="troubleshooting">
+                <h4>🔍 Si tienes problemas de conexión:</h4>
+                <ul>
+                    <li>Verifica que la URL termine en <strong>/exec</strong> (no /dev)</li>
+                    <li>Asegúrate de que el script esté desplegado como "Cualquiera" puede acceder</li>
+                    <li>Prueba en diferentes navegadores (Chrome, Firefox)</li>
+                    <li>Verifica tu conexión a Internet</li>
+                </ul>
             </div>
             
             <!-- Formulario Principal -->
@@ -231,6 +284,7 @@
                     <option value="maria.garcia">María García</option>
                     <option value="carlos.lopez">Carlos López</option>
                     <option value="ana.rodriguez">Ana Rodríguez</option>
+                    <option value="luis.martinez">Luis Martínez</option>
                 </select>
             </div>
             
@@ -242,6 +296,7 @@
                     <option value="proyecto-beta">Proyecto Beta</option>
                     <option value="proyecto-gamma">Proyecto Gamma</option>
                     <option value="proyecto-delta">Proyecto Delta</option>
+                    <option value="proyecto-epsilon">Proyecto Epsilon</option>
                 </select>
             </div>
             
@@ -307,7 +362,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             if (scriptURL) {
                 scriptUrlInput.value = scriptURL;
-                addDebugInfo('URL cargada: ' + scriptURL);
+                addDebugInfo('URL cargada desde localStorage: ' + scriptURL);
             }
             
             // Event listeners
@@ -319,11 +374,17 @@
             saveScriptUrlBtn.addEventListener('click', saveScriptURL);
             
             updatePreview();
+            
+            // Probar conexión automáticamente si hay URL guardada
+            if (scriptURL) {
+                setTimeout(() => testScriptURL(), 1000);
+            }
         });
         
         function addDebugInfo(message) {
             const timestamp = new Date().toLocaleTimeString();
-            debugInfo.textContent = `[${timestamp}] ${message}`;
+            const newEntry = `[${timestamp}] ${message}\n`;
+            debugInfo.textContent = newEntry + debugInfo.textContent;
         }
         
         function showStatus(message, type) {
@@ -362,9 +423,14 @@
                 return;
             }
             
+            // Validar formato de URL
+            if (!scriptURL.startsWith('https://script.google.com/macros/')) {
+                showStatus('La URL debe ser de Google Apps Script', 'warning');
+            }
+            
             localStorage.setItem('googleScriptURL', scriptURL);
             showStatus('URL guardada correctamente', 'success');
-            addDebugInfo('URL guardada: ' + scriptURL);
+            addDebugInfo('URL guardada en localStorage: ' + scriptURL);
             updatePreview();
         }
         
@@ -376,33 +442,56 @@
             }
             
             try {
-                showStatus('Probando conexión...', 'info');
-                addDebugInfo('Probando: ' + testURL);
+                showStatus('🔍 Probando conexión...', 'info');
+                addDebugInfo('Iniciando prueba de conexión: ' + testURL);
                 
-                const response = await fetch(testURL);
+                // Intentar con timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                
+                const response = await fetch(testURL, {
+                    method: 'GET',
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
                 const responseText = await response.text();
-                
-                addDebugInfo('Respuesta: ' + responseText);
+                addDebugInfo('Respuesta recibida: ' + responseText);
                 
                 let result;
                 try {
                     result = JSON.parse(responseText);
                 } catch (e) {
-                    throw new Error(`No es JSON válido: "${responseText}"`);
+                    throw new Error(`No es JSON válido: "${responseText.substring(0, 100)}..."`);
                 }
                 
                 if (result.status === 'success') {
-                    showStatus('✅ Conexión exitosa!', 'success');
+                    showStatus('✅ ¡Conexión exitosa! El servicio está funcionando', 'success');
                     scriptURL = testURL;
                     localStorage.setItem('googleScriptURL', scriptURL);
                     updatePreview();
+                    addDebugInfo('Conexión verificada: ' + JSON.stringify(result));
                 } else {
-                    throw new Error(result.message || 'Error desconocido');
+                    throw new Error(result.message || 'Error en la respuesta del servidor');
                 }
                 
             } catch (error) {
-                showStatus('Error: ' + error.message, 'error');
-                addDebugInfo('ERROR: ' + error.message);
+                let errorMessage = error.message;
+                
+                if (error.name === 'AbortError') {
+                    errorMessage = 'Timeout: La conexión tardó demasiado (más de 10 segundos)';
+                } else if (error.name === 'TypeError') {
+                    errorMessage = 'Error de red: No se pudo conectar al servidor. Verifica la URL y tu conexión a Internet.';
+                }
+                
+                showStatus('❌ Error: ' + errorMessage, 'error');
+                addDebugInfo('ERROR en prueba de conexión: ' + errorMessage);
+                
+                // Mostrar sugerencias específicas
+                if (errorMessage.includes('red')) {
+                    addDebugInfo('SUGERENCIA: Verifica que:\n- La URL sea correcta\n- El script esté desplegado como "Cualquiera"\n- No haya problemas de firewall');
+                }
             }
         }
         
@@ -418,57 +507,124 @@
             }
             
             try {
-                showStatus('Guardando...', 'info');
+                showStatus('📤 Enviando datos...', 'info');
+                saveBtn.disabled = true;
                 
                 const user = userSelect.options[userSelect.selectedIndex].text;
                 const project = projectSelect.options[projectSelect.selectedIndex].text;
                 const timestamp = new Date().toISOString();
                 
-                addDebugInfo(`Enviando: ${user}, ${project}, ${scannedData}`);
+                addDebugInfo(`Preparando datos: Usuario=${user}, Proyecto=${project}, Código=${scannedData}`);
                 
-                // Enviar como JSON
-                const payload = {
-                    user: user,
-                    project: project,
-                    code: scannedData,
-                    timestamp: timestamp
-                };
+                // Preparar datos en formato URL encoded (más compatible)
+                const formData = new URLSearchParams();
+                formData.append('user', user);
+                formData.append('project', project);
+                formData.append('code', scannedData);
+                formData.append('qrData', scannedData); // Enviar ambos nombres por compatibilidad
+                formData.append('timestamp', timestamp);
+                
+                addDebugInfo('Enviando solicitud POST...');
+                
+                // Intentar con timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000);
                 
                 const response = await fetch(scriptURL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                     },
-                    body: JSON.stringify(payload)
+                    body: formData,
+                    signal: controller.signal
                 });
                 
+                clearTimeout(timeoutId);
+                
                 const responseText = await response.text();
-                addDebugInfo('Respuesta: ' + responseText);
+                addDebugInfo('Respuesta del servidor: ' + responseText);
                 
                 let result;
                 try {
                     result = JSON.parse(responseText);
                 } catch (e) {
-                    throw new Error(`Respuesta no válida: "${responseText}"`);
+                    throw new Error(`Respuesta no válida del servidor: "${responseText.substring(0, 100)}..."`);
                 }
                 
                 if (result.status === 'success') {
-                    showStatus('✅ Guardado exitoso!', 'success');
-                    addDebugInfo('Fila: ' + result.row);
+                    showStatus('✅ ¡Guardado exitoso! Datos registrados en Google Sheets', 'success');
+                    addDebugInfo(`Registro guardado en fila: ${result.row}`);
+                    addDebugInfo(`URL de la hoja: ${result.spreadsheetUrl}`);
                     
                     // Limpiar formulario
                     scannedData = null;
+                    userSelect.value = '';
+                    projectSelect.value = '';
                     updatePreview();
                     
+                    // Restablecer botón después de un tiempo
+                    setTimeout(() => {
+                        saveBtn.disabled = false;
+                    }, 2000);
+                    
                 } else {
-                    throw new Error(result.message || 'Error del servidor');
+                    throw new Error(result.message || 'Error del servidor al guardar');
                 }
                 
             } catch (error) {
-                showStatus('Error al guardar: ' + error.message, 'error');
-                addDebugInfo('ERROR: ' + error.message);
+                let errorMessage = error.message;
+                
+                if (error.name === 'AbortError') {
+                    errorMessage = 'Timeout: El servidor tardó demasiado en responder';
+                } else if (error.name === 'TypeError') {
+                    errorMessage = 'Error de red: No se pudo conectar al servidor. Verifica tu conexión a Internet.';
+                }
+                
+                showStatus('❌ Error al guardar: ' + errorMessage, 'error');
+                addDebugInfo('ERROR al guardar: ' + errorMessage);
+                
+                // Guardar localmente como respaldo
+                const user = userSelect.options[userSelect.selectedIndex].text;
+                const project = projectSelect.options[projectSelect.selectedIndex].text;
+                const timestamp = new Date().toISOString();
+                
+                const localBackup = {
+                    user: user,
+                    project: project,
+                    code: scannedData,
+                    timestamp: timestamp,
+                    error: errorMessage
+                };
+                
+                // Guardar en localStorage
+                let backups = JSON.parse(localStorage.getItem('backupData') || '[]');
+                backups.push(localBackup);
+                localStorage.setItem('backupData', JSON.stringify(backups));
+                
+                addDebugInfo('Datos guardados localmente como respaldo');
+                showStatus('⚠️ Datos guardados localmente. Intenta nuevamente más tarde.', 'warning');
+                
+                // Rehabilitar botón
+                saveBtn.disabled = false;
             }
         }
+        
+        // Función para ver datos de respaldo
+        function viewBackupData() {
+            const backups = JSON.parse(localStorage.getItem('backupData') || '[]');
+            if (backups.length > 0) {
+                addDebugInfo('DATOS DE RESPALDO:\n' + JSON.stringify(backups, null, 2));
+            } else {
+                addDebugInfo('No hay datos de respaldo guardados');
+            }
+        }
+        
+        // Exponer función para depuración
+        window.viewBackupData = viewBackupData;
+        window.clearBackupData = function() {
+            localStorage.removeItem('backupData');
+            addDebugInfo('Datos de respaldo eliminados');
+        };
     </script>
 </body>
 </html>
