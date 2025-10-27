@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Proyectos con QR</title>
     <style>
-        /* Mantenemos los mismos estilos del código anterior */
         :root {
             --primary: #4361ee;
             --primary-dark: #3a56d4;
@@ -462,112 +461,6 @@
         </footer>
     </div>
 
-    <!-- Incluimos la librería QR directamente en el código -->
-    <script>
-        // Versión simplificada de html5-qrcode para evitar dependencias externas
-        class SimpleQRScanner {
-            constructor(containerId) {
-                this.container = document.getElementById(containerId);
-                this.video = document.createElement('video');
-                this.canvas = document.createElement('canvas');
-                this.ctx = this.canvas.getContext('2d');
-                this.isScanning = false;
-                this.onResult = null;
-                
-                // Configurar elementos
-                this.video.setAttribute('playsinline', '');
-                this.video.style.width = '100%';
-                this.video.style.height = '100%';
-                this.canvas.style.display = 'none';
-                
-                this.container.appendChild(this.video);
-                this.container.appendChild(this.canvas);
-            }
-            
-            async start(cameraId, config, onResult, onError) {
-                try {
-                    this.onResult = onResult;
-                    
-                    // Configurar stream de video
-                    const constraints = {
-                        video: {
-                            deviceId: cameraId ? { exact: cameraId } : undefined,
-                            facingMode: 'environment',
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 }
-                        }
-                    };
-                    
-                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                    this.video.srcObject = stream;
-                    await this.video.play();
-                    
-                    // Configurar canvas
-                    this.video.addEventListener('loadedmetadata', () => {
-                        this.canvas.width = this.video.videoWidth;
-                        this.canvas.height = this.video.videoHeight;
-                    });
-                    
-                    this.isScanning = true;
-                    this.scanFrame();
-                    
-                    return Promise.resolve();
-                } catch (error) {
-                    if (onError) onError(error);
-                    return Promise.reject(error);
-                }
-            }
-            
-            async stop() {
-                this.isScanning = false;
-                if (this.video.srcObject) {
-                    const tracks = this.video.srcObject.getTracks();
-                    tracks.forEach(track => track.stop());
-                    this.video.srcObject = null;
-                }
-                return Promise.resolve();
-            }
-            
-            scanFrame() {
-                if (!this.isScanning) return;
-                
-                if (this.video.readyState === this.video.HAVE_ENOUGH_DATA) {
-                    this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
-                    const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-                    
-                    // Simulación de detección de QR - En una implementación real usarías una librería
-                    // Para este ejemplo, simulamos que detectamos texto cuando el usuario hace clic
-                    // En una implementación completa, aquí iría el código de decodificación real
-                }
-                
-                requestAnimationFrame(() => this.scanFrame());
-            }
-            
-            // Método para escanear desde archivo
-            async scanImage(file) {
-                return new Promise((resolve) => {
-                    const img = new Image();
-                    const url = URL.createObjectURL(file);
-                    
-                    img.onload = () => {
-                        this.canvas.width = img.width;
-                        this.canvas.height = img.height;
-                        this.ctx.drawImage(img, 0, 0);
-                        
-                        // Simulamos la detección de código
-                        // En una implementación real, aquí procesarías la imagen para detectar QR
-                        setTimeout(() => {
-                            resolve(`Código_Simulado_${Date.now()}`);
-                            URL.revokeObjectURL(url);
-                        }, 1000);
-                    };
-                    
-                    img.src = url;
-                });
-            }
-        }
-    </script>
-
     <script>
         // Elementos DOM
         const userSelect = document.getElementById('user-select');
@@ -593,7 +486,6 @@
         const fileInput = document.getElementById('file-input');
         
         // Variables globales
-        let qrScanner = null;
         let currentCameraId = null;
         let scanHistory = JSON.parse(localStorage.getItem('projectScanHistory')) || [];
         let scannedData = null;
@@ -619,11 +511,6 @@
             try {
                 addDebugInfo('Inicializando aplicación...');
                 
-                // Inicializar el escáner QR simplificado
-                qrScanner = new SimpleQRScanner('reader');
-                scannerStatus.textContent = 'Escáner simplificado listo';
-                addDebugInfo('Escáner simplificado inicializado');
-                
                 // Cargar cámaras disponibles
                 await loadCameras();
                 
@@ -639,14 +526,11 @@
                 uploadImageBtn.addEventListener('click', () => fileInput.click());
                 fileInput.addEventListener('change', handleImageUpload);
                 
-                // Simular detección de QR al hacer clic en el video (para demostración)
-                document.getElementById('reader').addEventListener('click', simulateQRDetection);
-                
                 updateHistoryDisplay();
                 updateDataPreview();
                 
                 addDebugInfo('Aplicación inicializada correctamente');
-                showStatus('Aplicación lista. Usa la entrada manual o sube imágenes de códigos QR.', 'info');
+                showStatus('Aplicación lista. Usa la entrada manual para códigos.', 'info');
                 
             } catch (error) {
                 console.error('Error al inicializar:', error);
@@ -658,7 +542,7 @@
         }
         
         function simulateQRDetection() {
-            if (qrScanner && qrScanner.isScanning) {
+            if (scannerActive) {
                 scannedData = `QR_Simulado_${Math.random().toString(36).substr(2, 9)}`;
                 updateDataPreview();
                 resultDiv.innerHTML = `
@@ -683,9 +567,8 @@
                 showStatus('Procesando imagen...', 'info');
                 addDebugInfo('Procesando imagen: ' + file.name);
                 
-                // Usar el escáner simplificado para procesar la imagen
-                const result = await qrScanner.scanImage(file);
-                scannedData = result;
+                // Simular procesamiento de imagen
+                scannedData = `IMG_${Date.now()}`;
                 
                 updateDataPreview();
                 resultDiv.innerHTML = `
@@ -813,14 +696,6 @@
                         cameraSelect.appendChild(option);
                     });
                     
-                    // En móviles, intentar seleccionar la cámara trasera automáticamente
-                    if (isMobile()) {
-                        const rearCamera = findRearCamera(videoDevices);
-                        if (rearCamera) {
-                            cameraSelect.value = rearCamera.deviceId;
-                        }
-                    }
-                    
                     showStatus(`${videoDevices.length} cámara(s) encontrada(s)`, 'success');
                     startBtn.disabled = false;
                     addDebugInfo(`${videoDevices.length} cámaras detectadas`);
@@ -844,24 +719,8 @@
             }
         }
         
-        function isMobile() {
-            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        }
-        
-        function findRearCamera(devices) {
-            // Buscar cámara trasera por diferentes nombres
-            const rearKeywords = ['back', 'rear', 'environment', '2', '1'];
-            
-            for (const device of devices) {
-                const label = device.label.toLowerCase();
-                if (rearKeywords.some(keyword => label.includes(keyword))) {
-                    return device;
-                }
-            }
-            
-            // Si no encuentra cámara trasera, usar la primera
-            return devices.length > 0 ? devices[0] : null;
-        }
+        let scannerActive = false;
+        let mediaStream = null;
         
         async function startScanner() {
             const cameraId = cameraSelect.value;
@@ -875,20 +734,40 @@
                 showStatus('Iniciando cámara...', 'info');
                 addDebugInfo('Iniciando cámara: ' + cameraId);
                 
-                await qrScanner.start(
-                    cameraId,
-                    { fps: 10, qrbox: { width: 250, height: 250 } },
-                    null, // onResult - manejado por el click simulation
-                    (error) => console.error('Error en escáner:', error)
-                );
+                const constraints = {
+                    video: {
+                        deviceId: cameraId ? { exact: cameraId } : undefined,
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                };
                 
+                mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+                const video = document.createElement('video');
+                video.srcObject = mediaStream;
+                video.setAttribute('playsinline', '');
+                video.style.width = '100%';
+                video.style.height = '100%';
+                
+                // Limpiar contenedor y agregar video
+                const container = document.getElementById('scanner-container');
+                container.innerHTML = '';
+                container.appendChild(video);
+                
+                await video.play();
+                
+                scannerActive = true;
                 currentCameraId = cameraId;
                 startBtn.disabled = true;
                 stopBtn.disabled = false;
                 cameraSelect.disabled = true;
-                scannerStatus.textContent = 'Cámara activa - Haz clic en el área de video para simular detección de QR';
-                showStatus('Cámara activa - Haz clic en el video para simular QR', 'success');
+                scannerStatus.textContent = 'Cámara activa - Usa la entrada manual para códigos';
+                showStatus('Cámara activa - Usa la entrada manual para códigos', 'success');
                 addDebugInfo('Cámara iniciada correctamente');
+                
+                // Agregar evento de clic para simular detección
+                video.addEventListener('click', simulateQRDetection);
                 
             } catch (error) {
                 console.error('Error starting scanner:', error);
@@ -900,13 +779,22 @@
         
         async function stopScanner() {
             try {
-                await qrScanner.stop();
+                if (mediaStream) {
+                    mediaStream.getTracks().forEach(track => track.stop());
+                    mediaStream = null;
+                }
                 
+                scannerActive = false;
                 currentCameraId = null;
                 startBtn.disabled = false;
                 stopBtn.disabled = true;
                 cameraSelect.disabled = false;
-                scannerStatus.textContent = 'Cámara detenida';
+                
+                // Restaurar mensaje del escáner
+                const container = document.getElementById('scanner-container');
+                container.innerHTML = '<div id="scanner-status">Escáner listo - Selecciona una cámara y haz clic en Iniciar</div><div id="reader"></div>';
+                scannerStatus = document.getElementById('scanner-status');
+                
                 showStatus('Cámara detenida', 'info');
                 addDebugInfo('Cámara detenida');
                 
@@ -938,21 +826,21 @@
                 
                 addDebugInfo(`Enviando datos: usuario=${user}, proyecto=${project}, código=${scannedData}`);
                 
-                // Enviar datos como JSON en lugar de form-urlencoded
-                const payload = {
-                    user: user,
-                    project: project,
-                    code: scannedData,
-                    timestamp: timestamp
-                };
+                // Enviar datos como form-urlencoded con ambos nombres de parámetro
+                const formData = new URLSearchParams();
+                formData.append('user', user);
+                formData.append('project', project);
+                formData.append('code', scannedData);
+                formData.append('qrData', scannedData); // Enviar ambos nombres
+                formData.append('timestamp', timestamp);
                 
-                // Enviar datos a Google Sheets como JSON
+                // Enviar datos a Google Sheets
                 const response = await fetch(scriptURL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                    body: JSON.stringify(payload)
+                    body: formData
                 });
                 
                 const responseText = await response.text();
@@ -1044,7 +932,7 @@
         
         // Manejar cambios de cámara
         cameraSelect.addEventListener('change', () => {
-            if (qrScanner && qrScanner.isScanning) {
+            if (scannerActive) {
                 stopScanner().then(() => {
                     setTimeout(startScanner, 500);
                 });
