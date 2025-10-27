@@ -3,24 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Proyectos con QR</title>
+    <title>Registro de Proyectos QR</title>
     <style>
-        :root {
-            --primary: #4361ee;
-            --primary-dark: #3a56d4;
-            --secondary: #7209b7;
-            --success: #4cc9f0;
-            --danger: #f72585;
-            --light: #f8f9fa;
-            --dark: #212529;
-            --gray: #6c757d;
-        }
-        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
@@ -34,164 +23,103 @@
         
         .container {
             background: white;
-            border-radius: 20px;
+            border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             width: 100%;
-            max-width: 800px;
+            max-width: 600px;
             overflow: hidden;
         }
         
         header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: linear-gradient(135deg, #4361ee, #3a0ca3);
             color: white;
             padding: 25px 20px;
             text-align: center;
         }
         
         h1 {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             margin-bottom: 8px;
         }
         
         .subtitle {
             opacity: 0.9;
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
         
         .main-content {
             padding: 25px;
         }
         
-        .form-section, .scanner-section, .history-section {
-            margin-bottom: 25px;
-        }
-        
-        .section-title {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         
         label {
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: var(--dark);
+            color: #333;
         }
         
-        select, input, textarea {
+        select, input, button {
             width: 100%;
             padding: 12px 15px;
             border: 1px solid #ddd;
             border-radius: 8px;
             font-size: 1rem;
+        }
+        
+        select, input {
             background: white;
+            border: 1px solid #ccc;
         }
         
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-            font-family: monospace;
-        }
-        
-        select:focus, input:focus, textarea:focus {
+        select:focus, input:focus {
             outline: none;
-            border-color: var(--primary);
+            border-color: #4361ee;
             box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
         }
         
-        .scanner-container {
-            width: 100%;
-            margin: 0 auto 20px;
-            border-radius: 10px;
-            overflow: hidden;
-            background: #000;
-            position: relative;
-            height: 300px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-        }
-        
-        #reader {
-            width: 100%;
-            height: 100%;
-        }
-        
-        .controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
         button {
-            padding: 14px 20px;
+            background: #4361ee;
+            color: white;
             border: none;
-            border-radius: 8px;
             font-weight: 600;
-            font-size: 0.95rem;
             cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            flex: 1;
+            transition: background 0.3s;
+            margin-top: 10px;
         }
         
-        button:active {
-            transform: scale(0.98);
+        button:hover {
+            background: #3a56d4;
         }
         
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-        
-        .btn-danger {
-            background: var(--danger);
-            color: white;
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
         }
         
         .btn-success {
             background: #10b981;
-            color: white;
         }
         
-        button:disabled {
-            background: #d1d5db;
-            color: #9ca3af;
-            cursor: not-allowed;
-            transform: none;
+        .btn-success:hover {
+            background: #0da271;
         }
         
-        #result {
-            background: #f0f9ff;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            min-height: 60px;
-            border-left: 4px solid var(--primary);
+        .btn-danger {
+            background: #f72585;
+        }
+        
+        .btn-danger:hover {
+            background: #e01e75;
         }
         
         .status {
             padding: 12px;
             border-radius: 8px;
-            margin-bottom: 15px;
+            margin: 15px 0;
             text-align: center;
             font-weight: 500;
         }
@@ -208,34 +136,58 @@
             border: 1px solid #fecaca;
         }
         
-        .warning {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }
-        
         .info {
             background: #dbeafe;
             color: #1e40af;
             border: 1px solid #93c5fd;
         }
         
-        .history-item {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr auto;
-            gap: 10px;
-            align-items: center;
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
         }
         
-        .history-item:last-child {
+        .data-preview {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #4361ee;
+        }
+        
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .data-row:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
             border-bottom: none;
         }
         
-        .timestamp {
-            font-size: 0.75rem;
-            color: #666;
+        .config-section {
+            background: #e8f4fd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #4361ee;
+        }
+        
+        .debug-info {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            max-height: 150px;
+            overflow-y: auto;
         }
         
         footer {
@@ -246,218 +198,88 @@
             font-size: 0.8rem;
             border-top: 1px solid #dee2e6;
         }
-        
-        .camera-selector {
-            margin-bottom: 15px;
-        }
-        
-        .data-preview {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 15px;
-        }
-        
-        .data-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #e9ecef;
-        }
-        
-        .data-row:last-child {
-            margin-bottom: 0;
-            padding-bottom: 0;
-            border-bottom: none;
-        }
-        
-        .manual-input {
-            margin-top: 15px;
-        }
-        
-        .manual-input input {
-            margin-bottom: 10px;
-        }
-        
-        .config-section {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 15px;
-        }
-        
-        .config-section h3 {
-            margin-bottom: 10px;
-            color: var(--primary);
-        }
-        
-        .debug-info {
-            background: #2d3748;
-            color: #e2e8f0;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-            font-family: monospace;
-            font-size: 0.85rem;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        
-        .alternative-scanner {
-            margin-top: 15px;
-            padding: 15px;
-            background: #e8f4fd;
-            border-radius: 8px;
-            border-left: 4px solid var(--primary);
-        }
-        
-        @media (max-width: 768px) {
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .history-item {
-                grid-template-columns: 1fr;
-                gap: 5px;
-            }
-            
-            .controls {
-                flex-direction: column;
-            }
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Registro de Proyectos</h1>
-            <p class="subtitle">Selecciona usuario y proyecto, escanea códigos y guarda en Google Sheets</p>
+            <h1>Registro de Proyectos QR</h1>
+            <p class="subtitle">Registra usuarios, proyectos y códigos en Google Sheets</p>
         </header>
         
         <div class="main-content">
-            <section class="form-section">
-                <h2 class="section-title">
-                    <span>👤</span> Información del Registro
-                </h2>
-                
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="user-select">Usuario:</label>
-                        <select id="user-select">
-                            <option value="">Seleccionar usuario...</option>
-                            <option value="juan.perez">Juan Pérez</option>
-                            <option value="maria.garcia">María García</option>
-                            <option value="carlos.lopez">Carlos López</option>
-                            <option value="ana.rodriguez">Ana Rodríguez</option>
-                            <option value="luis.martinez">Luis Martínez</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="project-select">Proyecto:</label>
-                        <select id="project-select">
-                            <option value="">Seleccionar proyecto...</option>
-                            <option value="proyecto-alpha">Proyecto Alpha</option>
-                            <option value="proyecto-beta">Proyecto Beta</option>
-                            <option value="proyecto-gamma">Proyecto Gamma</option>
-                            <option value="proyecto-delta">Proyecto Delta</option>
-                            <option value="proyecto-epsilon">Proyecto Epsilon</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="data-preview">
-                    <div class="data-row">
-                        <strong>Usuario seleccionado:</strong>
-                        <span id="selected-user">Ninguno</span>
-                    </div>
-                    <div class="data-row">
-                        <strong>Proyecto seleccionado:</strong>
-                        <span id="selected-project">Ninguno</span>
-                    </div>
-                    <div class="data-row">
-                        <strong>Código escaneado:</strong>
-                        <span id="scanned-code">Ninguno</span>
-                    </div>
-                </div>
-                
-                <div class="manual-input">
-                    <label for="manual-code">O ingresa el código manualmente:</label>
-                    <input type="text" id="manual-code" placeholder="Escribe el código aquí">
-                    <button id="use-manual-code" class="btn-primary">Usar código manual</button>
-                </div>
-                
-                <div class="config-section">
-                    <h3>Configuración de Google Sheets</h3>
-                    <label for="script-url">URL del Script de Google Apps:</label>
+            <!-- Configuración -->
+            <div class="config-section">
+                <h3>🔧 Configuración</h3>
+                <div class="form-group">
+                    <label for="script-url">URL de Google Apps Script:</label>
                     <input type="text" id="script-url" placeholder="https://script.google.com/macros/s/.../exec">
-                    <div class="controls">
-                        <button id="test-script-url" class="btn-primary">Probar Conexión</button>
-                        <button id="save-script-url" class="btn-success">Guardar URL</button>
-                    </div>
-                    <div class="debug-info" id="debug-info">
-                        Estado: Aplicación inicializada correctamente
-                    </div>
+                    <button id="test-script-url" class="btn-primary">Probar Conexión</button>
+                    <button id="save-script-url" class="btn-success">Guardar URL</button>
                 </div>
-            </section>
+                <div class="debug-info" id="debug-info">
+                    Estado: Esperando configuración...
+                </div>
+            </div>
             
-            <section class="scanner-section">
-                <h2 class="section-title">
-                    <span>📷</span> Escáner de Códigos
-                </h2>
-                
-                <div class="camera-selector">
-                    <select id="camera-select">
-                        <option value="">Seleccionar cámara...</option>
-                    </select>
-                </div>
-                
-                <div class="scanner-container" id="scanner-container">
-                    <div id="scanner-status">Escáner listo - Selecciona una cámara y haz clic en Iniciar</div>
-                    <div id="reader"></div>
-                </div>
-                
-                <div class="controls">
-                    <button id="start-btn" class="btn-primary">
-                        <span>▶️</span> Iniciar Escáner
-                    </button>
-                    <button id="stop-btn" class="btn-danger" disabled>
-                        <span>⏹️</span> Detener Escáner
-                    </button>
-                    <button id="save-btn" class="btn-success" disabled>
-                        <span>💾</span> Guardar Registro
-                    </button>
-                </div>
-                
-                <div id="result">
-                    <p>El código escaneado aparecerá aquí...</p>
-                </div>
-                
-                <div class="alternative-scanner">
-                    <h4>📱 Escáner Alternativo para Móviles</h4>
-                    <p>Si el escáner principal no funciona, puedes:</p>
-                    <button id="upload-image-btn" class="btn-primary">
-                        <span>📁</span> Subir Imagen con Código QR
-                    </button>
-                    <input type="file" id="file-input" accept="image/*" style="display: none;">
-                </div>
-                
-                <div id="status" class="status info">
-                    Selecciona usuario, proyecto e inicia el escáner
-                </div>
-            </section>
+            <!-- Formulario Principal -->
+            <div class="form-group">
+                <label for="user-select">👤 Usuario:</label>
+                <select id="user-select">
+                    <option value="">Seleccionar usuario...</option>
+                    <option value="juan.perez">Juan Pérez</option>
+                    <option value="maria.garcia">María García</option>
+                    <option value="carlos.lopez">Carlos López</option>
+                    <option value="ana.rodriguez">Ana Rodríguez</option>
+                </select>
+            </div>
             
-            <section class="history-section">
-                <h2 class="section-title">
-                    <span>📋</span> Registros Recientes
-                </h2>
-                <div id="history"></div>
-            </section>
+            <div class="form-group">
+                <label for="project-select">📁 Proyecto:</label>
+                <select id="project-select">
+                    <option value="">Seleccionar proyecto...</option>
+                    <option value="proyecto-alpha">Proyecto Alpha</option>
+                    <option value="proyecto-beta">Proyecto Beta</option>
+                    <option value="proyecto-gamma">Proyecto Gamma</option>
+                    <option value="proyecto-delta">Proyecto Delta</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="manual-code">📷 Código QR (ingreso manual):</label>
+                <input type="text" id="manual-code" placeholder="Escribe o escanea el código aquí">
+                <button id="use-manual-code" class="btn-primary">Usar este código</button>
+            </div>
+            
+            <!-- Vista Previa -->
+            <div class="data-preview">
+                <div class="data-row">
+                    <strong>Usuario:</strong>
+                    <span id="selected-user">No seleccionado</span>
+                </div>
+                <div class="data-row">
+                    <strong>Proyecto:</strong>
+                    <span id="selected-project">No seleccionado</span>
+                </div>
+                <div class="data-row">
+                    <strong>Código:</strong>
+                    <span id="scanned-code">No ingresado</span>
+                </div>
+            </div>
+            
+            <!-- Botón Guardar -->
+            <button id="save-btn" class="btn-success" disabled>
+                💾 Guardar en Google Sheets
+            </button>
+            
+            <!-- Estado -->
+            <div id="status" class="status info">
+                Completa todos los campos y guarda la URL del script
+            </div>
         </div>
         
         <footer>
-            <p>Aplicación de Registro de Proyectos | &copy; 2023</p>
+            <p>Sistema de Registro QR | &copy; 2023</p>
         </footer>
     </div>
 
@@ -465,127 +287,71 @@
         // Elementos DOM
         const userSelect = document.getElementById('user-select');
         const projectSelect = document.getElementById('project-select');
-        const selectedUserSpan = document.getElementById('selected-user');
-        const selectedProjectSpan = document.getElementById('selected-project');
-        const scannedCodeSpan = document.getElementById('scanned-code');
-        const startBtn = document.getElementById('start-btn');
-        const stopBtn = document.getElementById('stop-btn');
-        const saveBtn = document.getElementById('save-btn');
-        const resultDiv = document.getElementById('result');
-        const statusDiv = document.getElementById('status');
-        const historyDiv = document.getElementById('history');
-        const cameraSelect = document.getElementById('camera-select');
         const manualCodeInput = document.getElementById('manual-code');
         const useManualCodeBtn = document.getElementById('use-manual-code');
-        const scannerStatus = document.getElementById('scanner-status');
+        const saveBtn = document.getElementById('save-btn');
         const scriptUrlInput = document.getElementById('script-url');
         const testScriptUrlBtn = document.getElementById('test-script-url');
         const saveScriptUrlBtn = document.getElementById('save-script-url');
+        const statusDiv = document.getElementById('status');
         const debugInfo = document.getElementById('debug-info');
-        const uploadImageBtn = document.getElementById('upload-image-btn');
-        const fileInput = document.getElementById('file-input');
+        const selectedUserSpan = document.getElementById('selected-user');
+        const selectedProjectSpan = document.getElementById('selected-project');
+        const scannedCodeSpan = document.getElementById('scanned-code');
         
-        // Variables globales
-        let currentCameraId = null;
-        let scanHistory = JSON.parse(localStorage.getItem('projectScanHistory')) || [];
+        // Variables
+        let scriptURL = localStorage.getItem('googleScriptURL') || '';
         let scannedData = null;
         
-        // URL del script de Google Apps
-        let scriptURL = localStorage.getItem('googleScriptURL') || '';
-        if (scriptURL) {
-            scriptUrlInput.value = scriptURL;
-            addDebugInfo('URL cargada desde localStorage: ' + scriptURL);
-        }
-        
-        // Inicializar la aplicación
+        // Inicializar
         document.addEventListener('DOMContentLoaded', function() {
-            initializeApp();
+            if (scriptURL) {
+                scriptUrlInput.value = scriptURL;
+                addDebugInfo('URL cargada: ' + scriptURL);
+            }
+            
+            // Event listeners
+            userSelect.addEventListener('change', updatePreview);
+            projectSelect.addEventListener('change', updatePreview);
+            useManualCodeBtn.addEventListener('click', useManualCode);
+            saveBtn.addEventListener('click', saveToSheets);
+            testScriptUrlBtn.addEventListener('click', testScriptURL);
+            saveScriptUrlBtn.addEventListener('click', saveScriptURL);
+            
+            updatePreview();
         });
         
         function addDebugInfo(message) {
             const timestamp = new Date().toLocaleTimeString();
-            debugInfo.innerHTML = `[${timestamp}] ${message}`;
+            debugInfo.textContent = `[${timestamp}] ${message}`;
         }
         
-        async function initializeApp() {
-            try {
-                addDebugInfo('Inicializando aplicación...');
-                
-                // Cargar cámaras disponibles
-                await loadCameras();
-                
-                // Configurar event listeners
-                startBtn.addEventListener('click', startScanner);
-                stopBtn.addEventListener('click', stopScanner);
-                saveBtn.addEventListener('click', saveToSheets);
-                userSelect.addEventListener('change', updateDataPreview);
-                projectSelect.addEventListener('change', updateDataPreview);
-                useManualCodeBtn.addEventListener('click', useManualCode);
-                testScriptUrlBtn.addEventListener('click', testScriptURL);
-                saveScriptUrlBtn.addEventListener('click', saveScriptURL);
-                uploadImageBtn.addEventListener('click', () => fileInput.click());
-                fileInput.addEventListener('change', handleImageUpload);
-                
-                updateHistoryDisplay();
-                updateDataPreview();
-                
-                addDebugInfo('Aplicación inicializada correctamente');
-                showStatus('Aplicación lista. Usa la entrada manual para códigos.', 'info');
-                
-            } catch (error) {
-                console.error('Error al inicializar:', error);
-                showStatus('Error al inicializar: ' + error.message, 'error');
-                scannerStatus.textContent = 'Error al inicializar el escáner. Usa la entrada manual.';
-                startBtn.disabled = true;
-                addDebugInfo('ERROR: ' + error.message);
-            }
+        function showStatus(message, type) {
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
         }
         
-        function simulateQRDetection() {
-            if (scannerActive) {
-                scannedData = `QR_Simulado_${Math.random().toString(36).substr(2, 9)}`;
-                updateDataPreview();
-                resultDiv.innerHTML = `
-                    <strong>✅ Código simulado detectado (demo):</strong>
-                    <div style="margin-top: 10px; padding: 10px; background: white; border-radius: 5px; word-break: break-all;">
-                        ${scannedData}
-                    </div>
-                    <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
-                        ⚠️ Esta es una simulación. En una aplicación real, se detectaría un código QR real.
-                    </p>
-                `;
-                showStatus('Código simulado detectado (demo)', 'success');
-                addDebugInfo('Código simulado: ' + scannedData);
-            }
-        }
-        
-        async function handleImageUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+        function updatePreview() {
+            selectedUserSpan.textContent = userSelect.value ? 
+                userSelect.options[userSelect.selectedIndex].text : 'No seleccionado';
+            selectedProjectSpan.textContent = projectSelect.value ? 
+                projectSelect.options[projectSelect.selectedIndex].text : 'No seleccionado';
+            scannedCodeSpan.textContent = scannedData || 'No ingresado';
             
-            try {
-                showStatus('Procesando imagen...', 'info');
-                addDebugInfo('Procesando imagen: ' + file.name);
-                
-                // Simular procesamiento de imagen
-                scannedData = `IMG_${Date.now()}`;
-                
-                updateDataPreview();
-                resultDiv.innerHTML = `
-                    <strong>✅ Código detectado desde imagen:</strong>
-                    <div style="margin-top: 10px; padding: 10px; background: white; border-radius: 5px; word-break: break-all;">
-                        ${scannedData}
-                    </div>
-                `;
-                showStatus('Código detectado desde imagen', 'success');
-                addDebugInfo('Código desde imagen: ' + scannedData);
-                
-                // Limpiar input
-                event.target.value = '';
-                
-            } catch (error) {
-                showStatus('Error al procesar la imagen: ' + error.message, 'error');
-                addDebugInfo('ERROR procesando imagen: ' + error.message);
+            // Habilitar botón si todo está completo
+            saveBtn.disabled = !(userSelect.value && projectSelect.value && scannedData && scriptURL);
+        }
+        
+        function useManualCode() {
+            const code = manualCodeInput.value.trim();
+            if (code) {
+                scannedData = code;
+                manualCodeInput.value = '';
+                updatePreview();
+                showStatus('Código ingresado correctamente', 'success');
+                addDebugInfo('Código manual: ' + code);
+            } else {
+                showStatus('Ingresa un código válido', 'error');
             }
         }
         
@@ -597,347 +363,112 @@
             }
             
             localStorage.setItem('googleScriptURL', scriptURL);
-            showStatus('URL guardada localmente', 'success');
+            showStatus('URL guardada correctamente', 'success');
             addDebugInfo('URL guardada: ' + scriptURL);
+            updatePreview();
         }
         
         async function testScriptURL() {
             const testURL = scriptUrlInput.value.trim();
             if (!testURL) {
-                showStatus('Por favor, ingresa una URL válida', 'error');
+                showStatus('Ingresa una URL para probar', 'error');
                 return;
             }
             
             try {
-                showStatus('Probando conexión con Google Apps Script...', 'info');
-                addDebugInfo('Probando conexión con: ' + testURL);
+                showStatus('Probando conexión...', 'info');
+                addDebugInfo('Probando: ' + testURL);
                 
-                // Hacer una solicitud de prueba usando GET
                 const response = await fetch(testURL);
                 const responseText = await response.text();
                 
-                addDebugInfo('Respuesta cruda: ' + responseText);
+                addDebugInfo('Respuesta: ' + responseText);
                 
                 let result;
                 try {
-                    // Intentar parsear como JSON
                     result = JSON.parse(responseText);
-                } catch (parseError) {
-                    // Si falla el parseo, mostrar el error específico
-                    throw new Error(`El servidor no devolvió JSON válido. Respuesta: "${responseText}"`);
+                } catch (e) {
+                    throw new Error(`No es JSON válido: "${responseText}"`);
                 }
                 
-                if (response.ok && result.status === 'success') {
-                    showStatus('✅ Conexión exitosa con Google Apps Script', 'success');
-                    addDebugInfo('Conexión exitosa: ' + JSON.stringify(result));
+                if (result.status === 'success') {
+                    showStatus('✅ Conexión exitosa!', 'success');
                     scriptURL = testURL;
                     localStorage.setItem('googleScriptURL', scriptURL);
+                    updatePreview();
                 } else {
-                    throw new Error(result.message || `Error ${response.status}: ${response.statusText}`);
+                    throw new Error(result.message || 'Error desconocido');
                 }
                 
             } catch (error) {
-                console.error('Error testing script URL:', error);
-                showStatus('Error al conectar: ' + error.message, 'error');
-                addDebugInfo('ERROR en conexión: ' + error.message);
-            }
-        }
-        
-        function useManualCode() {
-            const manualCode = manualCodeInput.value.trim();
-            if (manualCode) {
-                scannedData = manualCode;
-                updateDataPreview();
-                resultDiv.innerHTML = `
-                    <strong>✅ Código ingresado manualmente:</strong>
-                    <div style="margin-top: 10px; padding: 10px; background: white; border-radius: 5px; word-break: break-all;">
-                        ${manualCode}
-                    </div>
-                `;
-                showStatus('Código manual ingresado correctamente', 'success');
-                addDebugInfo('Código manual ingresado: ' + manualCode);
-                manualCodeInput.value = '';
-            } else {
-                showStatus('Por favor, ingresa un código manualmente', 'error');
-            }
-        }
-        
-        function updateDataPreview() {
-            selectedUserSpan.textContent = userSelect.value ? userSelect.options[userSelect.selectedIndex].text : 'Ninguno';
-            selectedProjectSpan.textContent = projectSelect.value ? projectSelect.options[projectSelect.selectedIndex].text : 'Ninguno';
-            scannedCodeSpan.textContent = scannedData || 'Ninguno';
-            
-            // Habilitar botón guardar si tenemos todos los datos
-            saveBtn.disabled = !(userSelect.value && projectSelect.value && scannedData);
-        }
-        
-        async function loadCameras() {
-            try {
-                showStatus('Buscando cámaras disponibles...', 'info');
-                addDebugInfo('Buscando cámaras...');
-                
-                // Forzar permisos de cámara primero
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                
-                // Detener el stream inmediatamente después de obtener permisos
-                stream.getTracks().forEach(track => track.stop());
-                
-                // Ahora listar las cámaras
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                const videoDevices = devices.filter(device => device.kind === 'videoinput');
-                
-                if (videoDevices && videoDevices.length > 0) {
-                    cameraSelect.innerHTML = '<option value="">Selecciona una cámara</option>';
-                    
-                    videoDevices.forEach(device => {
-                        const option = document.createElement('option');
-                        option.value = device.deviceId;
-                        option.text = device.label || `Cámara ${cameraSelect.length + 1}`;
-                        cameraSelect.appendChild(option);
-                    });
-                    
-                    showStatus(`${videoDevices.length} cámara(s) encontrada(s)`, 'success');
-                    startBtn.disabled = false;
-                    addDebugInfo(`${videoDevices.length} cámaras detectadas`);
-                    
-                } else {
-                    showStatus('No se encontraron cámaras', 'error');
-                    addDebugInfo('No se encontraron cámaras');
-                }
-                
-            } catch (error) {
-                console.error('Error loading cameras:', error);
-                addDebugInfo('ERROR cámaras: ' + error.message);
-                
-                if (error.name === 'NotAllowedError') {
-                    showStatus('Permiso de cámara denegado. Por favor, permite el acceso a la cámara.', 'error');
-                } else if (error.name === 'NotFoundError') {
-                    showStatus('No se encontró ninguna cámara en este dispositivo.', 'error');
-                } else {
-                    showStatus('Error al acceder a la cámara: ' + error.message, 'error');
-                }
-            }
-        }
-        
-        let scannerActive = false;
-        let mediaStream = null;
-        
-        async function startScanner() {
-            const cameraId = cameraSelect.value;
-            
-            if (!cameraId) {
-                showStatus('Por favor, selecciona una cámara primero', 'error');
-                return;
-            }
-            
-            try {
-                showStatus('Iniciando cámara...', 'info');
-                addDebugInfo('Iniciando cámara: ' + cameraId);
-                
-                const constraints = {
-                    video: {
-                        deviceId: cameraId ? { exact: cameraId } : undefined,
-                        facingMode: 'environment',
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    }
-                };
-                
-                mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-                const video = document.createElement('video');
-                video.srcObject = mediaStream;
-                video.setAttribute('playsinline', '');
-                video.style.width = '100%';
-                video.style.height = '100%';
-                
-                // Limpiar contenedor y agregar video
-                const container = document.getElementById('scanner-container');
-                container.innerHTML = '';
-                container.appendChild(video);
-                
-                await video.play();
-                
-                scannerActive = true;
-                currentCameraId = cameraId;
-                startBtn.disabled = true;
-                stopBtn.disabled = false;
-                cameraSelect.disabled = true;
-                scannerStatus.textContent = 'Cámara activa - Usa la entrada manual para códigos';
-                showStatus('Cámara activa - Usa la entrada manual para códigos', 'success');
-                addDebugInfo('Cámara iniciada correctamente');
-                
-                // Agregar evento de clic para simular detección
-                video.addEventListener('click', simulateQRDetection);
-                
-            } catch (error) {
-                console.error('Error starting scanner:', error);
-                showStatus('Error al iniciar la cámara: ' + error.message, 'error');
-                startBtn.disabled = false;
-                addDebugInfo('ERROR iniciando cámara: ' + error.message);
-            }
-        }
-        
-        async function stopScanner() {
-            try {
-                if (mediaStream) {
-                    mediaStream.getTracks().forEach(track => track.stop());
-                    mediaStream = null;
-                }
-                
-                scannerActive = false;
-                currentCameraId = null;
-                startBtn.disabled = false;
-                stopBtn.disabled = true;
-                cameraSelect.disabled = false;
-                
-                // Restaurar mensaje del escáner
-                const container = document.getElementById('scanner-container');
-                container.innerHTML = '<div id="scanner-status">Escáner listo - Selecciona una cámara y haz clic en Iniciar</div><div id="reader"></div>';
-                scannerStatus = document.getElementById('scanner-status');
-                
-                showStatus('Cámara detenida', 'info');
-                addDebugInfo('Cámara detenida');
-                
-            } catch (error) {
-                console.error('Error stopping scanner:', error);
-                showStatus('Error al detener la cámara', 'error');
-                addDebugInfo('ERROR deteniendo cámara: ' + error.message);
+                showStatus('Error: ' + error.message, 'error');
+                addDebugInfo('ERROR: ' + error.message);
             }
         }
         
         async function saveToSheets() {
             if (!userSelect.value || !projectSelect.value || !scannedData) {
-                showStatus('Faltan datos para guardar. Completa todos los campos.', 'error');
+                showStatus('Completa todos los campos', 'error');
                 return;
             }
             
             if (!scriptURL) {
-                showStatus('Primero configura la URL del script de Google Apps', 'error');
+                showStatus('Configura la URL primero', 'error');
                 return;
             }
             
             try {
-                showStatus('Guardando en Google Sheets...', 'info');
+                showStatus('Guardando...', 'info');
                 
-                // Preparar datos
                 const user = userSelect.options[userSelect.selectedIndex].text;
                 const project = projectSelect.options[projectSelect.selectedIndex].text;
                 const timestamp = new Date().toISOString();
                 
-                addDebugInfo(`Enviando datos: usuario=${user}, proyecto=${project}, código=${scannedData}`);
+                addDebugInfo(`Enviando: ${user}, ${project}, ${scannedData}`);
                 
-                // Enviar datos como form-urlencoded con ambos nombres de parámetro
-                const formData = new URLSearchParams();
-                formData.append('user', user);
-                formData.append('project', project);
-                formData.append('code', scannedData);
-                formData.append('qrData', scannedData); // Enviar ambos nombres
-                formData.append('timestamp', timestamp);
+                // Enviar como JSON
+                const payload = {
+                    user: user,
+                    project: project,
+                    code: scannedData,
+                    timestamp: timestamp
+                };
                 
-                // Enviar datos a Google Sheets
                 const response = await fetch(scriptURL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Content-Type': 'application/json',
                     },
-                    body: formData
+                    body: JSON.stringify(payload)
                 });
                 
                 const responseText = await response.text();
-                addDebugInfo('Respuesta cruda del servidor: ' + responseText);
+                addDebugInfo('Respuesta: ' + responseText);
                 
                 let result;
                 try {
                     result = JSON.parse(responseText);
-                } catch (parseError) {
-                    throw new Error(`El servidor no devolvió JSON válido. Respuesta: "${responseText}"`);
+                } catch (e) {
+                    throw new Error(`Respuesta no válida: "${responseText}"`);
                 }
                 
                 if (result.status === 'success') {
-                    // Agregar al historial local
-                    addToHistory(user, project, scannedData, timestamp);
-                    
-                    showStatus('✅ Registro guardado exitosamente en Google Sheets', 'success');
+                    showStatus('✅ Guardado exitoso!', 'success');
+                    addDebugInfo('Fila: ' + result.row);
                     
                     // Limpiar formulario
                     scannedData = null;
-                    updateDataPreview();
-                    resultDiv.innerHTML = '<p>El código escaneado aparecerá aquí...</p>';
-                    saveBtn.disabled = true;
+                    updatePreview();
+                    
                 } else {
-                    throw new Error(result.message || 'Error desconocido del servidor');
+                    throw new Error(result.message || 'Error del servidor');
                 }
                 
             } catch (error) {
-                console.error('Error saving to sheets:', error);
                 showStatus('Error al guardar: ' + error.message, 'error');
-                addDebugInfo('ERROR guardando: ' + error.message);
-                
-                // Guardar localmente como respaldo
-                const user = userSelect.options[userSelect.selectedIndex].text;
-                const project = projectSelect.options[projectSelect.selectedIndex].text;
-                addToHistory(user, project, scannedData, new Date().toISOString());
-                showStatus('Los datos se guardaron localmente como respaldo', 'warning');
+                addDebugInfo('ERROR: ' + error.message);
             }
         }
-        
-        function addToHistory(user, project, code, timestamp) {
-            const localTimestamp = new Date(timestamp).toLocaleString();
-            
-            scanHistory.unshift({
-                user: user,
-                project: project,
-                code: code,
-                timestamp: localTimestamp,
-                saved: true
-            });
-            
-            // Mantener máximo 10 elementos
-            if (scanHistory.length > 10) {
-                scanHistory = scanHistory.slice(0, 10);
-            }
-            
-            // Guardar en localStorage
-            localStorage.setItem('projectScanHistory', JSON.stringify(scanHistory));
-            
-            // Actualizar display
-            updateHistoryDisplay();
-        }
-        
-        function updateHistoryDisplay() {
-            historyDiv.innerHTML = '';
-            
-            if (scanHistory.length === 0) {
-                historyDiv.innerHTML = '<p style="padding: 20px; text-align: center; color: #666;">No hay registros recientes</p>';
-                return;
-            }
-            
-            scanHistory.forEach(item => {
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'history-item';
-                itemDiv.innerHTML = `
-                    <div><strong>Usuario:</strong> ${item.user}</div>
-                    <div><strong>Proyecto:</strong> ${item.project}</div>
-                    <div><strong>Código:</strong> ${item.code}</div>
-                    <div class="timestamp">${item.timestamp}</div>
-                `;
-                historyDiv.appendChild(itemDiv);
-            });
-        }
-        
-        function showStatus(message, type) {
-            statusDiv.textContent = message;
-            statusDiv.className = `status ${type}`;
-        }
-        
-        // Manejar cambios de cámara
-        cameraSelect.addEventListener('change', () => {
-            if (scannerActive) {
-                stopScanner().then(() => {
-                    setTimeout(startScanner, 500);
-                });
-            }
-        });
     </script>
 </body>
 </html>
