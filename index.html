@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Proyectos QR</title>
     <style>
+        /* Estilos anteriores ... (se mantienen igual) */
+        /* Para ahorrar espacio, no repetimos todos los estilos, pero los necesarios */
         * {
             margin: 0;
             padding: 0;
@@ -238,7 +240,36 @@
         .troubleshooting li {
             margin-bottom: 5px;
         }
+
+        /* Estilos para el escáner */
+        #reader {
+            width: 100%;
+            height: 300px;
+            margin: 0 auto;
+            position: relative;
+            border: 2px solid #4361ee;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        #reader video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .scanner-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .scanner-controls button {
+            margin-top: 0;
+        }
     </style>
+    <!-- Cargar la librería html5-qrcode -->
+    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -299,10 +330,20 @@ Estado: Esperando configuración...
                     <option value="proyecto-epsilon">Proyecto Epsilon</option>
                 </select>
             </div>
+
+            <!-- Escáner con cámara -->
+            <div class="form-group">
+                <label>📷 Escanear código QR o de barras:</label>
+                <div id="reader"></div>
+                <div class="scanner-controls">
+                    <button id="start-scanner" class="btn-primary">Iniciar Cámara</button>
+                    <button id="stop-scanner" class="btn-danger" disabled>Detener Cámara</button>
+                </div>
+            </div>
             
             <div class="form-group">
-                <label for="manual-code">📷 Código QR (ingreso manual):</label>
-                <input type="text" id="manual-code" placeholder="Escribe o escanea el código aquí">
+                <label for="manual-code">✏️ O ingresa el código manualmente:</label>
+                <input type="text" id="manual-code" placeholder="Escribe el código aquí">
                 <button id="use-manual-code" class="btn-primary">Usar este código</button>
             </div>
             
@@ -353,11 +394,14 @@ Estado: Esperando configuración...
         const selectedUserSpan = document.getElementById('selected-user');
         const selectedProjectSpan = document.getElementById('selected-project');
         const scannedCodeSpan = document.getElementById('scanned-code');
+        const startScannerBtn = document.getElementById('start-scanner');
+        const stopScannerBtn = document.getElementById('stop-scanner');
         
         // Variables
         let scriptURL = localStorage.getItem('googleScriptURL') || '';
         let scannedData = null;
-        
+        let html5QrCode = null;
+
         // Inicializar
         document.addEventListener('DOMContentLoaded', function() {
             if (scriptURL) {
@@ -372,6 +416,8 @@ Estado: Esperando configuración...
             saveBtn.addEventListener('click', saveToSheets);
             testScriptUrlBtn.addEventListener('click', testScriptURL);
             saveScriptUrlBtn.addEventListener('click', saveScriptURL);
+            startScannerBtn.addEventListener('click', startScanner);
+            stopScannerBtn.addEventListener('click', stopScanner);
             
             updatePreview();
             
@@ -494,6 +540,81 @@ Estado: Esperando configuración...
                 }
             }
         }
+
+        // Funciones para el escáner
+        function startScanner() {
+            // Verificar si la librería está disponible
+            if (!window.Html5Qrcode) {
+                showStatus('Error: No se pudo cargar la librería de escaneo', 'error');
+                return;
+            }
+
+            html5QrCode = new Html5Qrcode("reader");
+            
+            const config = {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                supportedScanTypes: [
+                    Html5QrcodeScanType.SCAN_TYPE_QR_CODE,
+                    Html5QrcodeScanType.SCAN_TYPE_BARCODE
+                ]
+            };
+
+            Html5Qrcode.getCameras().then(cameras => {
+                if (cameras && cameras.length > 0) {
+                    const cameraId = cameras[0].id;
+                    html5QrCode.start(
+                        cameraId,
+                        config,
+                        onScanSuccess,
+                        onScanFailure
+                    ).then(() => {
+                        startScannerBtn.disabled = true;
+                        stopScannerBtn.disabled = false;
+                        showStatus('Escáner activado. Enfoca un código QR o de barras.', 'info');
+                    }).catch(err => {
+                        showStatus('Error al iniciar la cámara: ' + err, 'error');
+                    });
+                } else {
+                    showStatus('No se encontraron cámaras', 'error');
+                }
+            }).catch(err => {
+                showStatus('Error al acceder a las cámaras: ' + err, 'error');
+            });
+        }
+
+        function stopScanner() {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    startScannerBtn.disabled = false;
+                    stopScannerBtn.disabled = true;
+                    showStatus('Escáner detenido', 'info');
+                }).catch(err => {
+                    showStatus('Error al detener el escáner: ' + err, 'error');
+                });
+            }
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            // Solo actualizar si es un nuevo código
+            if (decodedText !== scannedData) {
+                scannedData = decodedText;
+                updatePreview();
+                showStatus('Código escaneado: ' + decodedText, 'success');
+                addDebugInfo('Código escaneado: ' + decodedText);
+
+                // Opcional: detener el escáner después de leer un código
+                // stopScanner();
+            }
+        }
+
+        function onScanFailure(error) {
+            // Los errores de escaneo son normales, no los mostramos para no molestar al usuario
+            // Solo se muestra si hay un error crítico
+            if (error && !error.includes('NotFoundException')) {
+                addDebugInfo('Error de escaneo: ' + error);
+            }
+        }
         
         async function saveToSheets() {
             if (!userSelect.value || !projectSelect.value || !scannedData) {
@@ -608,23 +729,6 @@ Estado: Esperando configuración...
                 saveBtn.disabled = false;
             }
         }
-        
-        // Función para ver datos de respaldo
-        function viewBackupData() {
-            const backups = JSON.parse(localStorage.getItem('backupData') || '[]');
-            if (backups.length > 0) {
-                addDebugInfo('DATOS DE RESPALDO:\n' + JSON.stringify(backups, null, 2));
-            } else {
-                addDebugInfo('No hay datos de respaldo guardados');
-            }
-        }
-        
-        // Exponer función para depuración
-        window.viewBackupData = viewBackupData;
-        window.clearBackupData = function() {
-            localStorage.removeItem('backupData');
-            addDebugInfo('Datos de respaldo eliminados');
-        };
     </script>
 </body>
 </html>
