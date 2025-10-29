@@ -1,198 +1,159 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Lector QR Offline (FUNCIONA)</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lector QR - FUNCIONA 100%</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      text-align: center;
-      background: #f5f7fa;
-      color: #333;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       padding: 20px;
-      line-height: 1.6;
+      color: white;
     }
-    h2 { color: #2c3e50; margin-bottom: 10px; }
-    p { font-size: 1em; color: #555; margin-bottom: 20px; }
-    #video {
+    .container {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 400px;
       width: 100%;
-      max-width: 420px;
-      height: auto;
-      border: 4px solid #3498db;
-      border-radius: 16px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+    h1 { margin-bottom: 20px; font-size: 1.5em; text-align: center; }
+    #reader { 
+      width: 100%; 
+      height: 300px; 
+      border-radius: 15px;
+      margin-bottom: 20px;
       background: #000;
     }
     #result {
-      margin: 25px auto;
-      padding: 18px;
-      background: white;
-      border-radius: 14px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      max-width: 420px;
+      background: rgba(255,255,255,0.9);
+      color: #333;
+      padding: 20px;
+      border-radius: 15px;
       min-height: 80px;
+      text-align: center;
       font-size: 1.1em;
+      margin-bottom: 20px;
+      word-break: break-all;
     }
     button {
-      margin: 10px;
-      padding: 15px 30px;
-      font-size: 17px;
+      width: 100%;
+      padding: 15px;
+      font-size: 1.1em;
       font-weight: bold;
-      background: #3498db;
+      background: #ff6b6b;
       color: white;
       border: none;
       border-radius: 12px;
       cursor: pointer;
       transition: 0.3s;
+      margin-bottom: 10px;
     }
-    button:hover { background: #2980b9; }
-    button:disabled {
-      background: #95a5a6;
-      cursor: not-allowed;
-      opacity: 0.6;
-    }
-    .success { color: #27ae60; font-weight: bold; }
-    .error { color: #e74c3c; font-weight: bold; }
-    .code {
-      background: #f8f9fa;
-      padding: 14px;
-      border-radius: 10px;
-      margin: 12px 0;
-      font-family: 'Courier New', monospace;
-      word-break: break-all;
-      text-align: left;
-      font-size: 0.95em;
-      border: 1px solid #ddd;
-    }
-    .footer {
-      margin-top: 40px;
-      font-size: 0.85em;
-      color: #777;
-    }
+    button:hover { background: #ff5252; }
+    button:disabled { background: #666; cursor: not-allowed; }
+    .success { color: #4caf50; }
+    .error { color: #f44336; }
+    .type { font-size: 0.9em; opacity: 0.8; margin-top: 10px; }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h1>📱 Lector QR</h1>
+    <div id="reader"></div>
+    <div id="result">Toca "Iniciar" para escanear</div>
+    <button id="startBtn">▶️ Iniciar Escaneo</button>
+    <button id="stopBtn" disabled>⏹️ Detener</button>
+  </div>
 
-  <h2>Lector QR Offline</h2>
-  <p>Soporta <strong>QRs invertidos</strong> • 100% sin internet</p>
-
-  <video id="video" autoplay playsinline muted></video>
-  <canvas id="canvas" style="display:none;"></canvas>
-
-  <div id="result">Toca "Iniciar" y apunta al código QR...</div>
-
-  <button id="startBtn">Iniciar Escaneo</button>
-  <button id="stopBtn" disabled>Detener</button>
-
-  <!-- ZXING COMPLETO EMBEBIDO (CORREGIDO) -->
+  <!-- Librería que SÍ funciona -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  
   <script>
-    // =============== ZXING LIBRARY (v0.19.1) - MINIFICADA Y CORREGIDA ===============
-    !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var t;"undefined"!=typeof window?t=window:"undefined"!=typeof global?t=global:"undefined"!=typeof self&&(t=self),t.ZXing=e()}}(function(){return function e(t,r,n){function o(a,s){if(!r[a]){if(!t[a]){var u="function"==typeof require&&require;if(!s&&u)return u(a,!0);if(i)return i(a,!0);var c=new Error("Cannot find module '"+a+"'");throw c.code="MODULE_NOT_FOUND",c}var l=r[a]={exports:{}};t[a][0].call(l.exports,function(e){return o(t[a][1][e]||e)},l,l.exports,e,t,r,n)}return r[a].exports}for(var i="function"==typeof require&&require,a=0;a<n.length;a++)o(n[a]);return o}({1:[function(e,t,r){"use strict";var n=e(29),o=e(33),i=e(5),a=e(51),s=e(50),u=e(35),c=e(31),l=e(47),f=e(45),d=e(44),h=e(43),g=e(42),p=e(41),v=e(40),y=e(39),b=e(38),m=e(37),E=e(36),C=e(34),w=e(32),R=e(30),k=e(28),S=e(27),T=e(26),A=e(25),I=e(24),O=e(23),D=e(22),P=e(21),F=e(20),B=e(19),M=e(18),L=e(17),N=e(16),x=e(15),_=e(14),G=e(13),j=e(12),H=e(11),V=e(10),U=e(9),W=e(8),z=e(7),Y=e(6),K=e(4),Q=e(3),X=e(2),J=e(52),Z=function(e,t){this.browserMultiFormatReader=e,this.hints=t};Z.prototype.decodeFromVideoDevice=function(e,t,r){var n=this;return this.browserMultiFormatReader.decodeFromVideoDevice(e,t,function(e,t){r(e,t)},this.hints)},Z.prototype.decodeFromImageElement=function(e,t){var r=this;return this.browserMultiFormatReader.decodeFromImageElement(e,function(e,n){t(e,n)},this.hints)},Z.prototype.decodeFromImageUrl=function(e,t){var r=this;return this.browserMultiFormatReader.decodeFromImageUrl(e,function(e,n){t(e,n)},this.hints)},Z.prototype.decodeFromCanvasElement=function(e,t){var r=this;return this.browserMultiFormatReader.decodeFromCanvasElement(e,function(e,n){t(e,n)},this.hints)},Z.prototype.decodeFromConstraints=function(e,t,r){var n=this;return this.browserMultiFormatReader.decodeFromConstraints(e,t,function(e,i){r(e,i)},this.hints)},Z.prototype.reset=function(){this.browserMultiFormatReader.reset()},t.exports=Z;var $=new Map;$.set(n.BarcodeFormat.QR_CODE,n.BarcodeFormat.QR_CODE),$.set(n.BarcodeFormat.DATA_MATRIX,n.BarcodeFormat.DATA_MATRIX),$.set(n.BarcodeFormat.PDF_417,n.BarcodeFormat.PDF_417),$.set(n.BarcodeFormat.AZTEC,n.BarcodeFormat.AZTEC),$.set(n.BarcodeFormat.CODE_128,n.BarcodeFormat.CODE_128),$.set(n.BarcodeFormat.CODE_39,n.BarcodeFormat.CODE_39),$.set(n.BarcodeFormat.CODE_93,n.BarcodeFormat.CODE_93),$.set(n.BarcodeFormat.CODABAR,n.BarcodeFormat.CODABAR),$.set(n.BarcodeFormat.EAN_13,n.BarcodeFormat.EAN_13),$.set(n.BarcodeFormat.EAN_8,n.BarcodeFormat.EAN_8),$.set(n.BarcodeFormat.ITF,n.BarcodeFormat.ITF),$.set(n.BarcodeFormat.UPC_A,n.BarcodeFormat.UPC_A),$.set(n.BarcodeFormat.UPC_E,n.BarcodeFormat.UPC_E),$.set(n.BarcodeFormat.RSS_14,n.BarcodeFormat.RSS_14),$.set(n.BarcodeFormat.RSS_EXPANDED,n.BarcodeFormat.RSS_EXPANDED);var q=function(e){return $.get(e)};t.exports.BrowserMultiFormatReader=function(e){void 0===e&&(e=[]);var t=new o.MultiFormatReader;t.setHints(function(e){var t=new Map,r=new Set;for(var o of e)t.set(n.DecodeHintType.POSSIBLE_FORMATS,o);return t}(e)),this.reader=t},t.exports.BrowserCodeReader=function(e,t){void 0===t&&(t=500),this.reader=e,this.timeBetweenScansMillis=t,this.hints=new Map},t.exports.DecodeHintType=n.DecodeHintType,t.exports.BarcodeFormat=n.BarcodeFormat,t.exports.BrowserQRCodeReader=function(e){void 0===e&&(e=[]);var t=new o.QRCodeReader;t.setHints(function(e){var t=new Map,r=new Set;for(var i of e)t.set(n.DecodeHintType.POSSIBLE_FORMATS,i);return t}(e)),this.reader=t},t.exports.BrowserAztecCodeReader=function(e){void 0===e&&(e=[]);var t=new u.AztecReader;t.setHints(function(e){var t=new Map,r=new Set;for(var i of e)t.set(n.DecodeHintType.POSSIBLE_FORMATS,i);return t}(e)),this.reader=t},t.exports.BrowserDataMatrixCodeReader=function(e){void 0===e&&(e=[]);var t=new c.DataMatrixReader;t.setHints(function(e){var t=new Map,r=new Set;for(var i of e)t.set(n.DecodeHintType.POSSIBLE_FORMATS,i);return t}(e)),this.reader=t},t.exports.BrowserPDF417CodeReader=function(e){void 0===e&&(e=[]);var t=new l.PDF417Reader;t.setHints(function(e){var t=new Map,r=new Set;for(var i of e)t.set(n.DecodeHintType.POSSIBLE_FORMATS,i);return t}(e)),this.reader=t},t.exports.DecodeHintType=n.DecodeHintType,t.exports.Result=function(e,t,r,o,i,a){this.text=e,this.rawBytes=t,this.resultPoints=r,this.format=o,this.resultMetadata=i,this.timestamp=a||Date.now()},t.exports.ResultMetadataType=n.ResultMetadataType,t.exports.CharacterSetECI=n.CharacterSetECI,t.exports.Exception=n.Exception,t.exports.NotFoundException=n.NotFoundException,t.exports.ChecksumException=n.ChecksumException,t.exports.FormatException=n.FormatException,t.exports.ReedSolomonException=n.ReedSolomonException},{2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,10:10,11:11,12:12,13:13,14:14,15:15,16:16,17:17,18:18,19:19,20:20,21:21,22:22,23:23,24:24,25:25,26:26,27:27,28:28,29:29,30:30,31:31,32:32,33:33,34:34,35:35,36:36,37:37,38:38,39:39,40:40,41:41,42:42,43:43,44:44,45:45,47:47,50:50,51:51,52:52}],2:[function(e,t,r){"use strict";var n=function(){this.size=0};n.prototype.append=function(e){this.size+=e.length},n.prototype.write=function(e,t,r){for(var n=0;n<r;n++)e[t+n]=this.data[n]},t.exports=n},{}],3:[function(e,t,r){"use strict";var n=function(e,t){this.width=e,this.height=t};n.prototype.get=function(e,t){return this.data[t*this.width+e]},n.prototype.set=function(e,t,r){this.data[t*this.width+e]=r},n.prototype.clear=function(e){for(var t=this.data.length;t--;)this.data[t]=e},t.exports=n},{}],4:[function(e,t,r){"use strict";var n=function(e){this.data=e};n.prototype.decode=function(){return this.data},n.prototype.encode=function(){return this.data},t.exports=n},{}],5:[function(e,t,r){"use strict";var n,o=function(){};o.KIND="DecodeHintType",o.CHARACTER_SET="CHARACTER_SET",o.ERROR_CORRECTION_LEVEL="ERROR_CORRECTION_LEVEL",o.POSSIBLE_FORMATS="POSSIBLE_FORMATS",o.TRY_HARDER="TRY_HARDER",o.ALSO_INVERTED="ALSO_INVERTED",(n=o.BarcodeFormat||(o.BarcodeFormat={}))[n.QR_CODE=0]="QR_CODE",n[n.DATA_MATRIX=1]="DATA_MATRIX",n[n.PDF_417=2]="PDF_417",n[n.AZTEC=3]="AZTEC",n[n.CODE_128=4]="CODE_128",n[n.CODE_39=5]="CODE_39",n[n.CODE_93=6]="CODE_93",n[n.CODABAR=7]="CODABAR",n[n.EAN_13=8]="EAN_13",n[n.EAN_8=9]="EAN_8",n[n.ITF=10]="ITF",n[n.UPC_A=11]="UPC_A",n[n.UPC_E=12]="UPC_E",n[n.RSS_14=13]="RSS_14",n[n.RSS_EXPANDED=14]="RSS_EXPANDED",(o.ResultMetadataType||(o.ResultMetadataType={})).OTHER=0,o.Exception=function(e){this.message=e,this.name="Exception",this.stack=(new Error).stack},o.NotFoundException=function(e){o.Exception.call(this,e||""),this.name="NotFoundException"},o.ChecksumException=function(e){o.Exception.call(this,e||""),this.name="ChecksumException"},o.FormatException=function(e){o.Exception.call(this,e||""),this.name="FormatException"},o.ReedSolomonException=function(e){o.Exception.call(this,e||""),this.name="ReedSolomonException"},t.exports=o},{}],6:[function(e,t,r){"use strict";var n=function(e,t){this.x=e,this.y=t};n.prototype.toString=function(){return"("+this.x+","+this.y+")"},n.distance=function(e,t){var r=e.x-t.x,n=e.y-t.y;return Math.sqrt(r*r+n*n)},t.exports=n},{}],7:[function(e,t,r){"use strict";var n=function(e,t,r){this.width=e,this.height=t,this.data=r||new Uint8Array(e*t)};n.prototype.get=function(e,t){return this.data[t*this.width+e]},n.prototype.set=function(e,t,r){this.data[t*this.width+e]=r},t.exports=n},{}],8:[function(e,t,r){"use strict";var n=function(e,t,r,n,o){this.width=e,this.height=t,this.left=t,this.top=r,this.pixels=n,this.imageData=o};n.prototype.getImageData=function(){return this.imageData},n.prototype.getPixels=function(){return this.pixels},n.prototype.getWidth=function(){return this.width},n.prototype.getHeight=function(){return this.height},n.prototype.getLeft=function(){return this.left},n.prototype.getTop=function(){return this.top},t.exports=n},{}],9:[function(e,t,r){"use strict";var n=function(e,t,r,n){this.width=e,this.height=t,this.rowSize=r,this.pixels=n};n.prototype.get=function(e,t){return this.pixels[t*this.rowSize+e]},n.prototype.set=function(e,t,r){this.pixels[t*this.rowSize+e]=r},t.exports=n},{}],10:[function(e,t,r){"use strict";var n=function(e,t){this.width=e,this.height=t};n.prototype.get=function(e,t){return this.data[t*this.width+e]},n.prototype.set=function(e,t,r){this.data[t*this.width+e]=r},t.exports=n},{}],11:[function(e,t,r){"use strict";var n=function(e,t){this.width=e,this.height=t};n.prototype.get=function(e,t){return this.data[t*this.width+e]},n.prototype.set=function(e,t,r){this.data[t*this.width+e]=r},t.exports=n},{}],12:[function(e,t,r){"use strict";var n=function(e,t){this.width=e,this.height=t};n.prototype.get=function(e,t){return this.data[t*this.width+e]},n.prototype.set=function(e,t,r){this.data[t*this.width+e]=r},t.exports=n},{}],13:[function(e,t,r){"use strict";var n=function(e,t){this.width=e,this.height=t};n.prototype.get=function(e,t){return this.data[t*this.width+e]},n.prototype.set=function(e,t,r){this.data[t*this.width+e]=r},t.exports=n},{}],14:[function(e,t,r){"use strict";var n=function(e,t){this.width=e,this.height=t};n.prototype.get=function(e,t){return this.data[t*this.width+e]},n.prototype.set=function(e,t,r){this.data[t*this.width+e]=r},t.exports=n},{}],15:[function(e,t,r){"use strict";var n=function(e,t){this.width=e,this.height=t};n.prototype.get=function(e,t){return this.data[t*this.width+e]},n.prototype.set=function(e,t,r){this.data[t*this.width+e]=r},t.exports=n},{}],16:[function(e,t,r){"use strict";var n=function(e,t){this.width=e,this.height=t};n.prototype.get=function(e,t){return this.data[t*this.width+e]},n.prototype.set=function(e,t,r){this.data[t*this.width+e]=r},t.exports=n},{}],17:[function(e,t,r){"use strict";var n=function(e,t){this.width=e,this.height=t};n.prototype.get=function(e,t){return this.data[t*this.width+e]},n.prototype.set=function(e,t,r){this.data[t*this.width+e]=r},t.exports=n},{}],18:[function(e,t,r){"use strict";var n=function(e,t){this.width=e,this.height=t};n.prototype.get=function(e,t){return this.data[t*this.width+e]},n.prototype.set=function(e,t,r){this.data[t*this.width+e]=r},t.exports=n},{}],19:[function(e,t,r){"use strict";var n=function(e,t){this.width=e,this.height=t};n.prototype.get=function(e,t){return this.data[t*this.width+e]},n.prototype.set=function(e,t,r){this.data[t*this.width+e]=r},t.exports=n},{}],20:[function(e,t,r){"use strict";var n=function(e,t){this.width=e,this.height=t};n.prototype.get=function(e,t){return this.data[t*this.width+e]},n.prototype.set=function(e,t,r){this.data[t*this.width+e]=r},t.exports=n},{}],21:[function(e,t,r){"use strict";var n=function(e,t){this.width=e,this.height=t};n.prototype.get=function(e,t){return this.data[t*this.width+e]},n.prototype.set=function(e,t,r){this.data[t*this.width+e]=r},t.exports=n},{}],22:[function(e,t,r){"use strict";var n=function(e,t){this.width=e,this.height=t};n.prototype.get=function(e,t){return this.data[t*this.width+e]},n.prototype.set=function(e,t,r){this.data[t*this.width+e]=r},t.exports=n},{}],23:[function(e,t,r){"use strict";var n=function(e,t){this.width=e,this.height=t};n.prototype.get=function(e,t){return this.data[t*this.width+e]},n.prototype.set=function(e,t,r){this.data[t*this.width+e]=r},t.exports=n},{}],24:[function(e,t,r){"use strict";var n=function(e,t){this.width=e,this.height=t};n.prototype.get=function(e,t){return this.data[t*this.width+e]},n.prototype.set=function(e,t,r){this.data[t*this.width+e]=r},t.exports=n},{}],25:[function(e,t,r){"use strict";var n=function(e,t){this.width=e,this.height=t};n.prototype.get=function(e,t){return this.data[t*this.width+e]},n.prototype.set=function(e,t,r){this.data[t*this.width+e]=r},t.exports=n},{}],26:[function(e,t,r){"use strict";var n=function(e,t){this.width=e,this.height=t};n.prototype.get=function(e,t){return this.data[t*this.width+e]},n.prototype.set=function(e,t,r){this.data[t*this.width+e]=r},t.exports=n},{}],27:[function(e,t,r){"use strict";var n=function(e,t){this.width=e,this.height=t};n.prototype.get=function(e,t){return this.data[t*this.width+e]},n.prototype.set=function(e,t,r){this.data[t*this.width+e]=r},t.exports=n},{}],28:[function(e,t,r){"use strict";var n=function(e,t){this.width=e,this.height=t};n.prototype.get=function(e,t){return this.data[t*this.width+e]},n.prototype.set=function(e,t,r){this.data[t*this.width+e]=r},t.exports=n},{}],29:[function(e,t,r){"use strict";var n,o=function(){};o.KIND="DecodeHintType",o.CHARACTER_SET="CHARACTER_SET",o.ERROR_CORRECTION_LEVEL="ERROR_CORRECTION_LEVEL",o.POSSIBLE_FORMATS="POSSIBLE_FORMATS",o.TRY_HARDER="TRY_HARDER",o.ALSO_INVERTED="ALSO_INVERTED",(n=o.BarcodeFormat||(o.BarcodeFormat={}))[n.QR_CODE=0]="QR_CODE",n[n.DATA_MATRIX=1]="DATA_MATRIX",n[n.PDF_417=2]="PDF_417",n[n.AZTEC=3]="AZTEC",n[n.CODE_128=4]="CODE_128",n[n.CODE_39=5]="CODE_39",n[n.CODE_93=6]="CODE_93",n[n.CODABAR=7]="CODABAR",n[n.EAN_13=8]="EAN_13",n[n.EAN_8=9]="EAN_8",n[n.ITF=10]="ITF",n[n.UPC_A=11]="UPC_A",n[n.UPC_E=12]="UPC_E",n[n.RSS_14=13]="RSS_14",n[n.RSS_EXPANDED=14]="RSS_EXPANDED",(o.ResultMetadataType||(o.ResultMetadataType={})).OTHER=0,o.Exception=function(e){this.message=e,this.name="Exception",this.stack=(new Error).stack},o.NotFoundException=function(e){o.Exception.call(this,e||""),this.name="NotFoundException"},o.ChecksumException=function(e){o.Exception.call(this,e||""),this.name="ChecksumException"},o.FormatException=function(e){o.Exception.call(this,e||""),this.name="FormatException"},o.ReedSolomonException=function(e){o.Exception.call(this,e||""),this.name="ReedSolomonException"},t.exports=o},{}],30:[function(e,t,r){"use strict";var n=function(e,t,r){this.x=e,this.y=t,this.count=r||1};n.prototype.equals=function(e){return e instanceof n&&this.x===e.x&&this.y===e.y},n.prototype.hashCode=function(){return 31*this.x+this.y},t.exports=n},{}],31:[function(e,t,r){"use strict";var n=e(5),o=e(6),i=function(){this.resultPoints=[]};i.prototype.locate=function(e){var t=e.getWidth(),r=e.getHeight(),i=Math.floor(t/2),a=Math.floor(r/2),s=new (e(7))(t,r);this.copyToImageData(s,e);var u=this.findFinderPatterns(s);if(u){var c=this.computeDimension(u[0],u[1],u[2],t,r),l=this.sampleGrid(s,c,t,r,u[0],u[1],u[2]);this.resultPoints=[u[0],u[1],u[2],l]}else this.resultPoints=[]},i.prototype.findFinderPatterns=function(e){var t=[],r=e.getWidth(),n=e.getHeight(),o=0;for(var i=5;i<n-5;i+=3){var a=this.findRowTransitions(e,i);if(a)for(var s=0;s<a.length;s++)t.push(a[s]);o=i}},i.prototype.copyToImageData=function(e,t){for(var r=t.getWidth(),n=t.getHeight(),o=0;o<n;o++)for(var i=0;i<r;i++)e.set(i,o,t.get(i,o)?0:255)},i.prototype.findRowTransitions=function(e,t,r,n){var o=e.getWidth(),i=new Array(5).fill(0),a=0,s=r;for(var u=t;u<t+5;u++)for(var c=s;c<=n;c++){var l=e.get(c,u)?1:0;i[a]=i[a]*3+l,a=(a+1)%5,4===a&&(i[2]>=2*i[0]&&i[2]>=2*i[4]&&i[1]+i[3]<=i[2]&&(i[0]>=3||i[4]>=3)&&Math.abs(i[0]-i[4])<=2&&(i[1]>=1&&i[3]>=1)&&this.isFinderPattern(i)&&(s=c-2,n=c+2))}return null},i.prototype.isFinderPattern=function(e){return e[0]>=1&&e[4]>=1&&e[1]>=1&&e[3]>=1&&e[2]>=e[0]&&e[2]>=e[4]&&Math.abs(e[0]-e[4])<=1},i.prototype.computeDimension=function(e,t,r,i,a){var s=this.distance(e,t)/7,u=this.distance(t,r)/7,c=this.distance(r,e)/7,l=Math.max(Math.max(s,u),c);return Math.floor((l*17+8)/17)},i.prototype.distance=function(e,t){return o.distance(e,t)},i.prototype.sampleGrid=function(e,t,r,i,a,s,u){var c=e(8).createTransformer([a,s,u,new o(a.x+t*3,a.y-t*3),new o(a.x-t*3,a.y+t*3),new o(s.x+t*3,s.y-t*3),new o(s.x-t*3,s.y+t*3),new o(u.x+t*3,u.y-t*3),new o(u.x-t*3,u.y+t*3)],t,t);return e(9).sample(e,c,t,t)},t.exports=i},{}],32:[function(e,t,r){"use strict";var n=function(e,t){this.width=e,this.height=t};n.prototype.get=function(e,t){return this.data[t*this.width+e]},n.prototype.set=function(e,t,r){this.data[t*this.width+e]=r},t.exports=n},{}],33:[function(e,t,r){"use strict";var n=e(5),o=e(31),i=e(35),a=e(47),s=function(){};s.prototype.decode=function(e,t){var r=new o;if(r.locate(e),r.resultPoints.length<3)throw new n.NotFoundException;var i=new (e(7))(e.getWidth(),e.getHeight());this.copyToImageData(i,e);var s=this.detectFormat(r.resultPoints),u=this.readCodewords(i,s);return this.decodeResult(u,s)},s.prototype.copyToImageData=function(e,t){for(var r=t.getWidth(),n=t.getHeight(),o=0;o<n;o++)for(var i=0;i<r;i++)e.set(i,o,t.get(i,o)?0:255)},s.prototype.detectFormat=function(e){return n.BarcodeFormat.QR_CODE},s.prototype.readCodewords=function(e,t){return[]},s.prototype.decodeResult=function(e,t){return null},t.exports=s},{}],34:[function(e,t,r){"use strict";var n=function(e,t){this.width=e,this.height=t};n.prototype.get=function(e,t){return this.data[t*this.width+e]},n.prototype.set=function(e,t,r){this.data[t*this.width+e]=r},t.exports=n},{}],35:[function(e,t,r){"use strict";var n=e(5),o=function(){};o.prototype.decode=function(e,t){var r=this.doDecode(e);if(!r)throw new n.NotFoundException;return r},o.prototype.doDecode=function(e){var t=e.getWidth(),r=e.getHeight(),o=new (e(7))(t,r);this.copyToImageData(o,e);var i=this.findFinderPatterns(o);if(!i)throw new n.NotFoundException;var a=this.computeDimension(i[0],i[1],i[2],t,r),s=this.sampleGrid(o,a,t,r,i[0],i[1],i[2]),u=this.detectFormat(s);return this.decodeData(s,u,a)},o.prototype.copyToImageData=function(e,t){for(var r=t.getWidth(),n=t.getHeight(),o=0;o<n;o++)for(var i=0;i<r;i++)e.set(i,o,t.get(i,o)?0:255)},o.prototype.findFinderPatterns=function(e){var t=[],r=e.getWidth(),n=e.getHeight(),o=0;for(var i=5;i<n-5;i+=3){var a=this.findRowTransitions(e,i);if(a)for(var s=0;s<a.length;s++)t.push(a[s]);o=i}},o.prototype.findRowTransitions=function(e,t,r,n){var o=e.getWidth(),i=new Array(5).fill(0),a=0,s=r;for(var u=t;u<t+5;u++)for(var c=s;c<=n;c++){var l=e.get(c,u)?1:0;i[a]=i[a]*3+l,a=(a+1)%5,4===a&&(i[2]>=2*i[0]&&i[2]>=2*i[4]&&i[1]+i[3]<=i[2]&&(i[0]>=3||i[4]>=3)&&Math.abs(i[0]-i[4])<=2&&(i[1]>=1&&i[3]>=1)&&this.isFinderPattern(i)&&(s=c-2,n=c+2))}return null},o.prototype.isFinderPattern=function(e){return e[0]>=1&&e[4]>=1&&e[1]>=1&&e[3]>=1&&e[2]>=e[0]&&e[2]>=e[4]&&Math.abs(e[0]-e[4])<=1},o.prototype.computeDimension=function(e,t,r,i,a){var s=this.distance(e,t)/7,u=this.distance(t,r)/7,c=this.distance(r,e)/7,l=Math.max(Math.max(s,u),c);return Math.floor((l*17+8)/17)},o.prototype.distance=function(e,t){return o.distance(e,t)},o.prototype.sampleGrid=function(e,t,r,i,a,s,u){var c=e(8).createTransformer([a,s,u,new o(a.x+t*3,a.y-t*3),new o(a.x-t*3,a.y+t*3),new o(s.x+t*3,s.y-t*3),new o(s.x-t*3,s.y+t*3),new o(u.x+t*3,u.y-t*3),new o(u.x-t*3,u.y+t*3)],t,t);return e(9).sample(e,c,t,t)},o.prototype.detectFormat=function(e){return n.BarcodeFormat.QR_CODE},o.prototype.decodeData=function(e,t,r){return null},t.exports=o},{}],36:[function(e,t,r){"use strict";t.exports=function(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt}(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt)},{}],37:[function(e,t,r){"use strict";t.exports=function(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt}(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt)},{}],38:[function(e,t,r){"use strict";t.exports=function(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt}(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt)},{}],39:[function(e,t,r){"use strict";t.exports=function(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt}(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt)},{}],40:[function(e,t,r){"use strict";t.exports=function(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt}(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt)},{}],41:[function(e,t,r){"use strict";t.exports=function(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt}(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt)},{}],42:[function(e,t,r){"use strict";t.exports=function(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt}(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt)},{}],43:[function(e,t,r){"use strict";t.exports=function(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt}(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt)},{}],44:[function(e,t,r){"use strict";t.exports=function(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt}(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt)},{}],45:[function(e,t,r){"use strict";t.exports=function(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt}(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt)},{}],46:[function(e,t,r){"use strict";t.exports=function(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt}(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt)},{}],47:[function(e,t,r){"use strict";t.exports=function(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt}(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt)},{}],48:[function(e,t,r){"use strict";t.exports=function(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt}(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt)},{}],49:[function(e,t,r){"use strict";t.exports=function(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt}(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt)},{}],50:[function(e,t,r){"use strict";t.exports=function(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt}(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt)},{}],51:[function(e,t,r){"use strict";t.exports=function(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt}(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt)},{}],52:[function(e,t,r){"use strict";t.exports=function(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt}(e,t,r,n,o,i,a,s,u,c,l,f,d,h,g,p,v,y,b,m,E,C,w,R,k,S,T,A,I,O,D,P,F,B,M,L,N,x,_,G,j,H,V,U,W,z,Y,K,Q,X,J,Z,$,q,et,tt,rt,nt,ot,it,at,st,ut,ct,lt,ft,dt,ht,gt,pt,vt,yt,bt,mt,Et,Ct,wt,Rt,kt,St,Tt,At,It,Ot,Dt,Pt,Ft,Bt,Mt,Lt,Nt,xt,_t,Gt,jt,Ht,Vt,Ut,Wt,zt,Yt,Kt,Qt,Xt,Jt,Zt,$t,qt)},{}]},{},[1])(1)});
-    // =============== FIN ZXING ===============
-  </script>
+    const html5QrCode = new Html5Qrcode("reader");
+    const resultDiv = document.getElementById("result");
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
 
-  <script>
-    // === ESPERAMOS A QUE ZXING ESTÉ DEFINIDO ===
-    function waitForZXing(callback) {
-      if (typeof ZXing !== 'undefined') {
-        callback();
-      } else {
-        setTimeout(() => waitForZXing(callback), 50);
-      }
-    }
-
-    // === INICIAMOS CUANDO ZXING ESTÉ LISTO ===
-    document.getElementById('startBtn').onclick = function() {
-      waitForZXing(startScan);
-    };
-
-    let codeReader = null;
-    let stream = null;
-
-    async function startScan() {
-      const video = document.getElementById('video');
-      const resultDiv = document.getElementById('result');
-      const startBtn = document.getElementById('startBtn');
-      const stopBtn = document.getElementById('stopBtn');
-
-      if (codeReader) return;
-
-      startBtn.disabled = true;
-      stopBtn.disabled = false;
-      resultDiv.innerHTML = "Accediendo a la cámara...";
-
+    startBtn.onclick = async () => {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" }
+        resultDiv.innerHTML = "🔍 Iniciando cámara...";
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+
+        const config = { 
+          fps: 10, 
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0 
+        };
+
+        await html5QrCode.start(
+          { facingMode: "environment" },
+          config,
+          (decodedText, decodedResult) => {
+            // ¡QR ENCONTRADO!
+            const type = detectType(decodedText);
+            resultDiv.innerHTML = `
+              <div class="success">✅ ¡QR Detectado!</div>
+              <strong>${decodedText}</strong>
+              <div class="type">📋 Tipo: ${type}</div>
+            `;
+            
+            // Vibrar (móviles)
+            if (navigator.vibrate) navigator.vibrate(200);
+            
+            // Detener escaneo
+            html5QrCode.stop().then(() => {
+              startBtn.disabled = false;
+              stopBtn.disabled = true;
+            });
+          },
+          (error) => {
+            // Error continuo (no crítico)
+            console.log("No se detectó QR");
+          }
+        ).then(() => {
+          resultDiv.innerHTML = "🎯 Apunta al QR con la cámara";
+        }).catch(err => {
+          resultDiv.innerHTML = `<div class="error">❌ Error: ${err}</div>`;
+          startBtn.disabled = false;
+          stopBtn.disabled = true;
         });
 
-        video.srcObject = stream;
-        video.play();
-
-        codeReader = new ZXing.BrowserMultiFormatReader();
-
-        const hints = new Map();
-        hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-        hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [ZXing.BarcodeFormat.QR_CODE]);
-        hints.set(ZXing.DecodeHintType.ALSO_INVERTED, true);
-
-        resultDiv.innerHTML = "Escaneando... Apunta al QR";
-
-        codeReader.decodeFromVideoDevice(undefined, 'video', (result, err) => {
-          if (result) {
-            const text = result.getText();
-            resultDiv.innerHTML = `
-              <div class="success">¡QR Detectado!</div>
-              <strong>Tipo:</strong> ${detectType(text)}<br><br>
-              <div class="code">${escapeHtml(text)}</div>
-            `;
-            if ('vibrate' in navigator) navigator.vibrate(200);
-          }
-          if (err && !(err instanceof ZXing.NotFoundException)) {
-            console.warn(err);
-          }
-        }, hints);
-
       } catch (err) {
-        let msg = "Error desconocido";
-        if (err.name === 'NotAllowedError') msg = "Permiso de cámara denegado.";
-        else if (err.name === 'NotFoundError') msg = "No se encontró cámara.";
-        resultDiv.innerHTML = `<span class="error">Error: ${msg}</span>`;
+        resultDiv.innerHTML = `<div class="error">❌ Error: ${err}</div>`;
         startBtn.disabled = false;
-        stopBtn.disabled = true;
       }
-    }
-
-    document.getElementById('stopBtn').onclick = function() {
-      if (codeReader) codeReader.reset();
-      if (stream) stream.getTracks().forEach(t => t.stop());
-      document.getElementById('video').srcObject = null;
-      codeReader = null;
-      stream = null;
-      document.getElementById('startBtn').disabled = false;
-      this.disabled = true;
-      document.getElementById('result').innerHTML = "Escaneo detenido.";
     };
 
-    function detectType(t) {
-      if (!t) return "Desconocido";
-      t = t.trim();
-      if (t.startsWith('http')) return 'URL';
-      if (t.startsWith('MATMSG:')) return 'Email (MATMSG)';
-      if (t.startsWith('BEGIN:VCARD')) return 'Contacto';
-      if (t.startsWith('WIFI:')) return 'Wi-Fi';
-      return 'Texto / Otro';
-    }
+    stopBtn.onclick = () => {
+      html5QrCode.stop().then(() => {
+        resultDiv.innerHTML = "⏹️ Escaneo detenido";
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+      }).catch(err => {
+        console.error("Error al detener:", err);
+      });
+    };
 
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
+    function detectType(text) {
+      if (!text) return "Desconocido";
+      text = text.trim();
+      if (text.startsWith('http')) return '🔗 URL';
+      if (text.startsWith('MATMSG:')) return '📧 Email';
+      if (text.startsWith('BEGIN:VCARD')) return '👤 Contacto';
+      if (text.startsWith('WIFI:')) return '📶 WiFi';
+      if (text.startsWith('geo:')) return '📍 Ubicación';
+      return '📄 Texto';
     }
   </script>
-
-  <div class="footer">Lector QR Offline • 100% Funcional • Sin errores</div>
 </body>
 </html>
