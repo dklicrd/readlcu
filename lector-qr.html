@@ -3,44 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Lector QR Online (Soporta Invertidos)</title>
+  <title>Lector QR Online (FIABLE)</title>
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      text-align: center;
-      margin: 20px;
-      background: #f7f7f7;
-      color: #333;
-    }
+    body { font-family: 'Segoe UI', sans-serif; text-align: center; margin: 20px; background: #f9f9f9; }
     h2 { color: #2c3e50; }
-    #video {
-      width: 100%;
-      max-width: 420px;
-      border: 3px solid #3498db;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    #canvas { display: none; }
-    #result {
-      margin-top: 20px;
-      padding: 15px;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      min-height: 60px;
-      font-size: 1.1em;
-    }
-    button {
-      margin: 15px 5px;
-      padding: 14px 28px;
-      font-size: 16px;
-      background: #3498db;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
+    #video { width: 100%; max-width: 420px; border: 3px solid #3498db; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    #result { margin: 20px; padding: 15px; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); min-height: 60px; }
+    button { margin: 10px; padding: 14px 28px; font-size: 16px; background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; }
     button:hover { background: #2980b9; }
     button:disabled { background: #95a5a6; cursor: not-allowed; }
     .success { color: #27ae60; font-weight: bold; }
@@ -48,27 +17,25 @@
   </style>
 </head>
 <body>
-  <h2>Lector de QR Online</h2>
-  <p>Soporta QRs <strong>invertidos</strong> y funciona con la cámara del celular</p>
+  <h2>Lector QR Online (Estable)</h2>
+  <p>Soporta <strong>QRs invertidos</strong> y funciona en cualquier celular</p>
 
   <video id="video" autoplay playsinline muted></video>
   <canvas id="canvas"></canvas>
 
-  <div id="result">Haz clic en "Iniciar" y apunta al código QR...</div>
+  <div id="result">Haz clic en "Iniciar" y apunta al QR...</div>
 
-  <button id="startBtn" onclick="startScan()">Iniciar Escaneo</button>
+  <button id="startBtn" onclick="startScan()">Iniciar</button>
   <button id="stopBtn" onclick="stopScan()" disabled>Detener</button>
 
-  <!-- CARGA ZXING DESDE INTERNET (ONLINE) -->
-  <script src="https://unpkg.com/@zxing/library@0.19.1/dist/index.min.js"></script>
+  <!-- ZXING DESDE jsDelivr (MÁS CONFIABLE) -->
+  <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/dist/index.min.js"></script>
 
   <script>
     const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
     const resultDiv = document.getElementById('result');
     const startBtn = document.getElementById('startBtn');
-    const stopBtn = document.getElementById('stopBtn');
+    const stopBtn = document.getById('stopBtn');
 
     let codeReader = null;
     let stream = null;
@@ -81,8 +48,13 @@
       resultDiv.innerHTML = "Cargando cámara...";
 
       try {
+        // Verificamos que ZXing esté cargado
+        if (typeof ZXing === 'undefined') {
+          throw new Error("ZXing no se cargó. Revisa tu conexión o usa otro navegador.");
+        }
+
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" } // cámara trasera
+          video: { facingMode: "environment" }
         });
 
         video.srcObject = stream;
@@ -93,41 +65,31 @@
         const hints = new Map();
         hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
         hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [ZXing.BarcodeFormat.QR_CODE]);
-        hints.set(ZXing.DecodeHintType.ALSO_INVERTED, true); // CLAVE: QRs invertidos
+        hints.set(ZXing.DecodeHintType.ALSO_INVERTED, true); // QRs invertidos
 
-        resultDiv.innerHTML = "Escaneando... Apunta al QR";
+        resultDiv.innerHTML = "Escaneando... Apunta al código";
 
         codeReader.decodeFromVideoDevice(undefined, 'video', (result, err) => {
           if (result) {
             const text = result.getText();
-            const type = detectType(text);
             resultDiv.innerHTML = `
-              <div class="success">¡QR Detectado!</div>
-              <strong>Tipo:</strong> ${type}<br><br>
-              <strong>Contenido:</strong><br>
-              <div style="background:#f0f0f0;padding:12px;border-radius:8px;margin:10px 0;">
+              <div class="success">QR Detectado!</div>
+              <strong>Tipo:</strong> ${detectType(text)}<br><br>
+              <div style="background:#f0f0f0;padding:12px;border-radius:8px;">
                 ${escapeHtml(text)}
               </div>
             `;
-            // Opcional: vibrar si es móvil
             if ('vibrate' in navigator) navigator.vibrate(200);
-          }
-          if (err && !(err instanceof ZXing.NotFoundException)) {
-            console.warn("Error de escaneo:", err);
           }
         }, hints);
 
       } catch (err) {
         let msg = "Error desconocido";
-        if (err.name === 'NotAllowedError') {
-          msg = "Permiso de cámara denegado. Activa la cámara en tu navegador.";
-        } else if (err.name === 'NotFoundError') {
-          msg = "No se encontró cámara en el dispositivo.";
-        } else if (err.message.includes('ZXing')) {
-          msg = "Error al cargar la librería ZXing. Revisa tu conexión.";
-        } else {
-          msg = err.message;
-        }
+        if (err.name === 'NotAllowedError') msg = "Permiso de cámara denegado. Actívalo en el navegador.";
+        else if (err.name === 'NotFoundError') msg = "No se encontró cámara.";
+        else if (err.message.includes('ZXing')) msg = "ZXing no se cargó. Usa WiFi o datos móviles.";
+        else msg = err.message;
+
         resultDiv.innerHTML = `<span class="error">Error: ${msg}</span>`;
         startBtn.disabled = false;
         stopBtn.disabled = true;
@@ -135,29 +97,24 @@
     }
 
     function stopScan() {
-      if (codeReader) {
-        codeReader.reset();
-        codeReader = null;
-      }
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-        video.srcObject = null;
-      }
+      if (codeReader) codeReader.reset();
+      if (stream) stream.getTracks().forEach(t => t.stop());
+      video.srcObject = null;
+      codeReader = null;
+      stream = null;
       startBtn.disabled = false;
       stopBtn.disabled = true;
-      resultDiv.innerHTML = "Escaneo detenido. Haz clic en Iniciar para continuar.";
+      resultDiv.innerHTML = "Escaneo detenido.";
     }
 
-    function detectType(text) {
-      if (!text) return "Desconocido";
-      text = text.trim();
-      if (text.startsWith('http')) return 'URL';
-      if (text.startsWith('MATMSG:')) return 'Email (MATMSG)';
-      if (text.startsWith('BEGIN:VCARD')) return 'Contacto (vCard)';
-      if (text.startsWith('WIFI:')) return 'Wi-Fi';
-      if (text.startsWith('geo:')) return 'Ubicación';
-      if (text.startsWith('tel:')) return 'Teléfono';
-      if (text.startsWith('mailto:')) return 'Email';
+    function detectType(t) {
+      if (!t) return "Desconocido";
+      t = t.trim();
+      if (t.startsWith('http')) return 'URL';
+      if (t.startsWith('MATMSG:')) return 'Email (MATMSG)';
+      if (t.startsWith('BEGIN:VCARD')) return 'Contacto';
+      if (t.startsWith('WIFI:')) return 'Wi-Fi';
+      if (t.startsWith('geo:')) return 'Ubicación';
       return 'Texto / Otro';
     }
 
@@ -166,9 +123,6 @@
       div.textContent = text;
       return div.innerHTML;
     }
-
-    // Detener al salir
-    window.addEventListener('beforeunload', stopScan);
   </script>
 </body>
 </html>
