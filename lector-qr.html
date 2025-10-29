@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lector QR Web (Soporta Invertidos)</title>
+  <style>
+    body { font-family: Arial; text-align: center; margin: 20px; }
+    #video { width: 100%; max-width: 400px; border: 2px solid #333; border-radius: 10px; }
+    #canvas { display: none; }
+    #result { margin-top: 20px; font-size: 1.1em; word-break: break-all; }
+    button { margin: 10px; padding: 12px 20px; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <h2>Lector de QR (Soporta QRs Invertidos)</h2>
+  <video id="video" autoplay playsinline></video>
+  <canvas id="canvas"></canvas>
+  <div id="result">Escaneando...</div>
+  <button onclick="startScan()">Iniciar Escaneo</button>
+
+  <!-- ZXing Library (soporta invertidos) -->
+  <script src="https://unpkg.com/@zxing/library@0.19.1/dist/index.min.js"></script>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const resultDiv = document.getElementById('result');
+    let scanning = false;
+    let codeReader;
+
+    async function startScan() {
+      if (scanning) return;
+      scanning = true;
+      resultDiv.textContent = "Accediendo a la cámara...";
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" } // cámara trasera
+        });
+        video.srcObject = stream;
+        video.play();
+
+        codeReader = new ZXing.BrowserMultiFormatReader();
+        
+        // ¡IMPORTANTE! Habilitar detección de invertidos
+        const hints = new Map();
+        hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+        hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+          ZXing.BarcodeFormat.QR_CODE
+        ]);
+        // Esto permite QRs invertidos
+        hints.set(ZXing.DecodeHintType.ALSO_INVERTED, true);
+
+        codeReader.decodeFromVideoDevice(undefined, 'video', (result, err) => {
+          if (result) {
+            resultDiv.innerHTML = `
+              <strong>¡QR Detectado!</strong><br>
+              <small>Tipo: ${detectType(result.getText())}</small><br><br>
+              <strong>Contenido:</strong><br>
+              <span style="background:#f0f0f0;padding:10px;display:inline-block;">
+                ${result.getText()}
+              </span>
+            `;
+            // Opcional: detener al detectar
+            // codeReader.reset();
+          }
+          if (err && !(err instanceof ZXing.NotFoundException)) {
+            console.error(err);
+          }
+        }, hints);
+
+      } catch (err) {
+        resultDiv.textContent = "Error: " + err.message + " (¿Permitiste la cámara?)";
+        scanning = false;
+      }
+    }
+
+    // Detecta tipo de contenido
+    function detectType(text) {
+      if (text.startsWith('http')) return 'URL';
+      if (text.startsWith('MATMSG:')) return 'Email (MATMSG)';
+      if (text.startsWith('BEGIN:VCARD')) return 'Contacto (vCard)';
+      if (text.startsWith('WIFI:')) return 'Wi-Fi';
+      if (text.includes('@') && text.includes(':')) return 'Posible Email/Texto';
+      return 'Texto / Otro';
+    }
+
+    // Iniciar automáticamente (opcional)
+    // window.onload = startScan;
+  </script>
+</body>
+</html>
